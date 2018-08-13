@@ -6,13 +6,18 @@ import ru.rpuxa.strategy.field.HexagonField
 import ru.rpuxa.strategy.players.CommandExecutor
 import ru.rpuxa.strategy.players.Human
 import ru.rpuxa.strategy.players.Player
-import ru.rpuxa.strategy.views.FieldView
+import ru.rpuxa.strategy.visual.FieldView
 
 class Game(val visual: FieldView, val board: HexagonField) : CommandExecutor {
 
     lateinit var players: Array<Player>
+    var started = false
 
-    init {
+    override fun start() {
+        if (started)
+            throw IllegalStateException("Game already started!")
+        started = true
+
         val humans = players.filter { it is Human }
         if (humans.size > 1) {
             throw IllegalStateException("No more 1 human in game!")
@@ -21,13 +26,13 @@ class Game(val visual: FieldView, val board: HexagonField) : CommandExecutor {
             val human = humans[0] as Human
             visual.setControlHuman(human)
         }
+
+        visual.draw(board)
     }
-
-
 }
 
 
-class GameBuilder(var visual: FieldView, var board: HexagonField?) {
+class GameBuilder(var visual: FieldView, var board: HexagonField? = null) {
 
     init {
         if (board == null) {
@@ -36,9 +41,10 @@ class GameBuilder(var visual: FieldView, var board: HexagonField?) {
     }
 
 
-    fun alone(): Game {
-        val game = Game(visual, board!!)
-        game.players = arrayOf(Human(game, Color.YELLOW))
-        return game
-    }
+    val alone: Game
+        get() {
+            val game = Game(visual, board!!)
+            game.players = arrayOf(Human(game, game.board, Color.YELLOW))
+            return game
+        }
 }

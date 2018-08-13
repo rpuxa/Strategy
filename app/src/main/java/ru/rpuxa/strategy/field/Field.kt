@@ -1,10 +1,10 @@
 package ru.rpuxa.strategy.field
 
-import ru.rpuxa.strategy.field.objects.Cell
+interface Field : Iterable<CellLocation> {
 
-interface Field {
+    val iterator: Iterator<CellLocation>
 
-    val iterator: Iterator<Triple<Int, Int, Cell>>
+    override fun iterator() = iterator
 
     operator fun get(x: Int, y: Int): Cell
 
@@ -12,4 +12,5 @@ interface Field {
 
     fun getNeighbours(x: Int, y: Int): Array<Cell>
 
+    fun getNeighbours(cell: Cell) = getNeighbours(cell.x, cell.y)
 }

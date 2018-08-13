@@ -3,9 +3,9 @@ package ru.rpuxa.strategy.players
 import android.view.MotionEvent
 import ru.rpuxa.strategy.CELL_INSIDE_RADIUS
 import ru.rpuxa.strategy.dist
+import ru.rpuxa.strategy.field.Cell
 import ru.rpuxa.strategy.field.Field
-import ru.rpuxa.strategy.field.objects.Cell
-import ru.rpuxa.strategy.views.FieldView
+import ru.rpuxa.strategy.visual.FieldView
 
 class Human(override val executor: CommandExecutor, override val field: Field, override val color: Int) : Player {
 
