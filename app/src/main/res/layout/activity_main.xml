@@ -4,12 +4,10 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".MainActivity">
+    tools:context=".activities.MainActivity">
 
     <ru.rpuxa.strategy.views.FieldView
         android:id="@+id/fieldView"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        tools:layout_editor_absoluteX="110dp"
-        tools:layout_editor_absoluteY="149dp" />
+        android:layout_height="match_parent" />
 </FrameLayout>

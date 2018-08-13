@@ -1,7 +1,8 @@
-package ru.rpuxa.strategy
+package ru.rpuxa.strategy.activities
 
-import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
+import android.support.v7.app.AppCompatActivity
+import ru.rpuxa.strategy.R
 
 class MainActivity : AppCompatActivity() {
 
