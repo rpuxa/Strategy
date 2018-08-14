@@ -1,7 +1,9 @@
 package ru.rpuxa.strategy.field.objects.player
 
 import ru.rpuxa.strategy.field.interfaces.PlayerBuildings
+import ru.rpuxa.strategy.visual.TextureBank
 
 class Town(override var x: Int, override var y: Int) : PlayerBuildings {
-    val selectionTerretory = 3
+    val selectionTerritory = 3
+    override val icon = TextureBank.UNIT
 }

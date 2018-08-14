@@ -17,7 +17,7 @@ class Cell(var obj: FieldObject,
     val color: Int
         get() = when {
             this === NONE -> NULL_COLOR_CELL
-            obj === NaturalStructures.EMPTY -> NO_PLAYER_COLOR_CELL
+            owner === Player.NONE -> NO_PLAYER_COLOR_CELL
             else -> owner.color
         }
     val canPass: Boolean

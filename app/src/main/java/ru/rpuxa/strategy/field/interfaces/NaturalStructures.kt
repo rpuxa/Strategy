@@ -6,6 +6,8 @@ interface NaturalStructures : FieldObject {
 
     companion object : Fallible {
         val EMPTY: FieldObject = object : NaturalStructures {
+            override val icon: Int
+                get() = fail()
             override val passable = true
             override val x: Int
                 get() = fail()

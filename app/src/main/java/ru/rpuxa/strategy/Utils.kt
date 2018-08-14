@@ -14,7 +14,7 @@ fun composeEffects(effects: Array<out PathEffect>): PathEffect {
         throw IllegalStateException("effects cant be empty")
     val list = LinkedList<PathEffect>()
     effects.forEach { list.add(it) }
-    while (effects.size > 1) {
+    while (list.size > 1) {
         val a = list.removeAt(0)
         val b = list.removeAt(0)
         list.add(ComposePathEffect(a, b))
@@ -22,4 +22,7 @@ fun composeEffects(effects: Array<out PathEffect>): PathEffect {
 
     return list[0]
 }
+
+fun composeEffectsVararg(vararg effects: PathEffect) = composeEffects(effects)
+
 

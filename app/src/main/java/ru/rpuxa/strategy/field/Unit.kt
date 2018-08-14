@@ -1,8 +1,6 @@
 package ru.rpuxa.strategy.field
 
-import ru.rpuxa.strategy.field.units.NoUnit
-
-interface Unit : Location {
+interface Unit : Location, Drawable {
     var health: Int
     var movePoints: Int
 
@@ -10,7 +8,7 @@ interface Unit : Location {
 
     companion object : Fallible {
 
-        val NONE = object : NoUnit {
+        val NONE = object : Unit {
 
             override var movePoints: Int
                 get() = fail()
@@ -24,6 +22,8 @@ interface Unit : Location {
             override var health: Int
                 get() = fail()
                 set(value) = fail()
+            override val icon: Int
+                get() = fail()
         }
     }
 }
