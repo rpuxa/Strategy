@@ -19,10 +19,8 @@ fun composeEffects(effects: Array<out PathEffect>): PathEffect {
         val b = list.removeAt(0)
         list.add(ComposePathEffect(a, b))
     }
-
+    var a: Long = 1
     return list[0]
 }
 
 fun composeEffectsVararg(vararg effects: PathEffect) = composeEffects(effects)
-
-

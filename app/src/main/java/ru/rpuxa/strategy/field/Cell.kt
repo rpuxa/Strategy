@@ -30,4 +30,12 @@ class Cell(var obj: FieldObject,
     companion object {
         val NONE = Cell(NaturalStructures.EMPTY, x = -10, y = -10)
     }
+
+
+
 }
+
+fun main(args: Array<String>) {
+    "Hello".say()
+}
+fun String.say() = print("say: $this")

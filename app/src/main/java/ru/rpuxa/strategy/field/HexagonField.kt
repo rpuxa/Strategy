@@ -27,9 +27,11 @@ val neighborsOdd = arrayOf(
  */
 class HexagonField(private val field: Matrix<Cell>) : MutableField {
 
-    override fun get(x: Int, y: Int) = if (!bound(x, y))
-        Cell.NONE
-    else field[x][y]
+    override fun get(x: Int, y: Int) =
+            if (!bound(x, y))
+                Cell.NONE
+            else
+                field[x][y]
 
     override fun set(x: Int, y: Int, value: Cell) {
         field[x][y] = value
@@ -40,28 +42,25 @@ class HexagonField(private val field: Matrix<Cell>) : MutableField {
     override val iterator: Iterator<Cell>
         get() = object : Iterator<Cell> {
             var i = 0
-            override fun hasNext() = i < this@HexagonField.field.size * this@HexagonField.field[0].size
+            val sizeX = this@HexagonField.field.size
+            val sizeY = this@HexagonField.field[0].size
+            val size = sizeX * sizeY
+
+            override fun hasNext() = i < size
 
             override fun next(): Cell {
-                val size = this@HexagonField.field.size
-                val x = i % size
-                val y = i / size
-                i++
-                return this@HexagonField[x, y]
+                val index = i++
+                return this@HexagonField[index % sizeX, index / sizeX]
             }
         }
 
 
-    @Suppress("UNCHECKED_CAST")
     override fun getNeighbours(x: Int, y: Int): Array<Cell> {
         val neighboursOffers = if (x % 2 == 0) neighboursEven else neighborsOdd
-        val array = arrayOfNulls<Cell>(neighboursOffers.size)
-        for (i in neighboursOffers.indices) {
-            val (shiftX, shiftY) = neighboursOffers[i]
-            array[i] = get(x + shiftX, y + shiftY)
+        return Array(neighboursOffers.size) {
+            val (shiftX, shiftY) = neighboursOffers[it]
+            this[x + shiftX, y + shiftY]
         }
-
-        return array as Array<Cell>
     }
 
     override fun changeLocationUnit(unit: Unit, location: Location) {
