@@ -11,4 +11,6 @@ interface CommandExecutor {
     fun start()
 
     fun moveUnit(unit: Unit, location: Location, sender: Player)
+
+    fun endMove()
 }

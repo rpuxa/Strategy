@@ -92,23 +92,7 @@ class RegionBuilder(val visual: FieldVisualizer, val field: Field) {
     }
 
     fun createFromUnitMove(unit: Unit): RegionPaint {
-        val maxDepth = unit.movePoints
-        val startCell = field[unit]
-        val cells = ArrayList<Cell>()
-        fun step(cell: Cell, depth: Int = 0) {
-            if (depth == maxDepth) {
-                if (cell.canStop)
-                    cells.add(cell)
-                return
-            }
-            if (cell != startCell && cell !in cells)
-                cells.add(cell)
-            val neighbours = field.getNeighbours(cell).filter { it !in cells && it != startCell && it.canPass }
-            for (n in neighbours)
-                step(n, depth + 1)
-        }
-        step(startCell)
-        val extract = createFromCells(cells).list
+        val extract = createFromCells(field.getUnitMoves(unit).map { it.cell }).list
         return RegionPaint(extract)
     }
 

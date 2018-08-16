@@ -20,6 +20,10 @@ class Human(override val executor: CommandExecutor,
         visual.draw(field)
     }
 
+    override fun onMoveStart() {
+
+    }
+
     override fun onMoveUnit(from: Location, to: Location, sender: Player) {
         visual.animator.animate(MoveUnitAnimation(from, to, field[to].unit, 1000))
         moveMode.off(false)

@@ -10,11 +10,13 @@ interface Player {
     val field: Field
     val color: Int
 
-fun onRuleViolate(rule: RuleException)
+    fun onRuleViolate(rule: RuleException)
 
     fun onMoveUnit(from: Location, to: Location, sender: Player)
 
     fun onStart()
+
+    fun onMoveStart()
 
 
     companion object : Fallible {
@@ -33,6 +35,10 @@ fun onRuleViolate(rule: RuleException)
             override fun onMoveUnit(from: Location, to: Location, sender: Player) = fail()
 
             override fun onStart() {
+                fail()
+            }
+
+            override fun onMoveStart() {
                 fail()
             }
         }
