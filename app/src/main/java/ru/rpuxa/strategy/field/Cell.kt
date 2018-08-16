@@ -8,10 +8,10 @@ import ru.rpuxa.strategy.players.Player
 
 
 class Cell(var obj: FieldObject,
-           val unit: Unit = Unit.NONE,
+           var unit: Unit = Unit.NONE,
            var owner: Player = Player.NONE,
-           override val x: Int,
-           override val y: Int
+           override var x: Int,
+           override var y: Int
 ) : Location {
 
     val color: Int

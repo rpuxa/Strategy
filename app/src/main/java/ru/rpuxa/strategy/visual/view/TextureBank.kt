@@ -1,4 +1,4 @@
-package ru.rpuxa.strategy.visual
+package ru.rpuxa.strategy.visual.view
 
 import android.content.res.Resources
 import android.graphics.Bitmap
@@ -11,18 +11,11 @@ class TextureBank(private val resources: Resources) {
     var lastSize = -1L
 
 
-    init {
-        val arr = arrayOf(
-                R.drawable.unit,
-                R.drawable.sword
-        )
 
-        arr.forEach { list.add(BitmapFactory.decodeResource(resources, it)) }
-    }
 
     operator fun get(i: Int) = list[i]
 
-    fun scale(index: Int, width: Int, height: Int): Bitmap {
+    fun getScaled(index: Int, width: Int, height: Int): Bitmap {
         val find = scaledList.find { it.width == width && it.height == height }
         if (find == null) {
             val bitmap = Bitmap.createScaledBitmap(this[index], width, height, false)
@@ -32,6 +25,12 @@ class TextureBank(private val resources: Resources) {
         return find.bitmap
     }
 
+    fun getProportionalScaled(index: Int, height: Int): Bitmap {
+        val bitmap = list[index]
+        val width = bitmap.width.toFloat() / bitmap.height * height
+        return getScaled(index, width.toInt(), height)
+    }
+
     fun updateSize(width: Int, height: Int) {
         val size = (width.toLong() shl 32) or height.toLong()
         if (size != lastSize)
@@ -39,7 +38,16 @@ class TextureBank(private val resources: Resources) {
         lastSize = size
     }
 
+
+
+    init {
+        arr.forEach { list.add(BitmapFactory.decodeResource(resources, it)) }
+    }
     companion object {
+        val arr = arrayOf(
+                R.drawable.unit,
+                R.drawable.sword
+        )
         val UNIT = 0
         val SWORD = 1
     }

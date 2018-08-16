@@ -25,7 +25,7 @@ val neighborsOdd = arrayOf(
 /**
  * Гексагональное поле игры
  */
-class HexagonField(private val field: Matrix<Cell>) : Field {
+class HexagonField(private val field: Matrix<Cell>) : MutableField {
 
     override fun get(x: Int, y: Int) = if (!bound(x, y))
         Cell.NONE
@@ -37,17 +37,17 @@ class HexagonField(private val field: Matrix<Cell>) : Field {
 
     private fun bound(x: Int, y: Int) = field.isNotEmpty() && x >= 0 && y >= 0 && field.size > x && field[0].size > y
 
-    override val iterator: Iterator<CellLocation>
-        get() = object : Iterator<CellLocation> {
+    override val iterator: Iterator<Cell>
+        get() = object : Iterator<Cell> {
             var i = 0
             override fun hasNext() = i < this@HexagonField.field.size * this@HexagonField.field[0].size
 
-            override fun next(): CellLocation {
+            override fun next(): Cell {
                 val size = this@HexagonField.field.size
                 val x = i % size
                 val y = i / size
                 i++
-                return CellLocation(x, y, this@HexagonField[x, y])
+                return this@HexagonField[x, y]
             }
         }
 
@@ -62,6 +62,13 @@ class HexagonField(private val field: Matrix<Cell>) : Field {
         }
 
         return array as Array<Cell>
+    }
+
+    override fun changeLocationUnit(unit: Unit, location: Location) {
+        this[unit].unit = Unit.NONE
+        unit.x = location.x
+        unit.y = location.y
+        this[unit].unit = unit
     }
 
 }

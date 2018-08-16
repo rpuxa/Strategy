@@ -9,9 +9,11 @@ interface NaturalStructures : FieldObject {
             override val icon: Int
                 get() = fail()
             override val passable = true
-            override val x: Int
+            override var x: Int
+                set(value) = fail()
                 get() = fail()
-            override val y: Int
+            override var y: Int
+                set(value) = fail()
                 get() = fail()
 
         }

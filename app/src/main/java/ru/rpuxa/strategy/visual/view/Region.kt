@@ -1,4 +1,4 @@
-package ru.rpuxa.strategy.visual
+package ru.rpuxa.strategy.visual.view
 
 import android.graphics.Canvas
 import android.graphics.Paint
@@ -12,6 +12,7 @@ import ru.rpuxa.strategy.field.objects.player.Town
 import ru.rpuxa.strategy.geometry.Line
 import ru.rpuxa.strategy.geometry.line
 import ru.rpuxa.strategy.geometry.pt
+import ru.rpuxa.strategy.visual.FieldVisualizer
 import java.lang.Math.PI
 import java.util.*
 import kotlin.collections.ArrayList
@@ -19,19 +20,17 @@ import kotlin.math.abs
 import kotlin.math.cos
 import kotlin.math.sin
 
-class Region(val border: Path = Path())
+internal class Region(val border: Path = Path())
 
-class RegionList : ArrayList<Region>()
+internal class RegionList(val cells: Collection<Cell>) : ArrayList<Region>()
 
-class RegionBuilder(val fieldView: FieldView, val field: Field) {
+class RegionBuilder(val visual: FieldVisualizer, val field: Field) {
 
     fun createFromCells(cells: Collection<Cell>): RegionPaint {
         val lines = LinkedList<Line>()
         for (cell in cells) {
-            val x = cell.x
-            val y = cell.y
-            val (worldCellX, worldCellY) = fieldView.getCellCoords(x, y)
-            for ((side, neighbour) in field.getNeighbours(x, y).withIndex()) {
+            val (worldCellX, worldCellY) = visual.locationToWorld(cell)
+            for ((side, neighbour) in field.getNeighbours(cell).withIndex()) {
                 if (neighbour in cells || cell == Cell.NONE)
                     continue
 
@@ -44,7 +43,7 @@ class RegionBuilder(val fieldView: FieldView, val field: Field) {
                 lines.add(line)
             }
         }
-        val regions = RegionList()
+        val regions = RegionList(cells)
         while (lines.isNotEmpty()) {
             var last = lines.removeAt(0)
             val region = Region()
@@ -70,7 +69,7 @@ class RegionBuilder(val fieldView: FieldView, val field: Field) {
 
     fun createFromTerritories(): Array<RegionPaint> {
         val list = LinkedList<Cell>()
-        for ((_, _, cell) in field) {
+        for (cell in field) {
             list.add(cell)
         }
 
@@ -94,45 +93,40 @@ class RegionBuilder(val fieldView: FieldView, val field: Field) {
 
     fun createFromUnitMove(unit: Unit): RegionPaint {
         val maxDepth = unit.movePoints
-
-        fun step(cell: Cell, depth: Int = 0): ArrayList<Cell> {
-            val list = ArrayList<Cell>()
-            if (!cell.canPass)
-                return list
+        val startCell = field[unit]
+        val cells = ArrayList<Cell>()
+        fun step(cell: Cell, depth: Int = 0) {
             if (depth == maxDepth) {
                 if (cell.canStop)
-                    list.add(cell)
-                return list
+                    cells.add(cell)
+                return
             }
-            if (depth != 0)
-                list.add(cell)
-            for (n in field.getNeighbours(cell).filter { it !in list })
-                list.addAll(step(cell, depth + 1))
-
-            return list
+            if (cell != startCell && cell !in cells)
+                cells.add(cell)
+            val neighbours = field.getNeighbours(cell).filter { it !in cells && it != startCell && it.canPass }
+            for (n in neighbours)
+                step(n, depth + 1)
         }
-
-        val extract = createFromCells(step(field[unit.x, unit.y])).list
-        if (extract.isEmpty() || extract.size > 1)
-            throw IllegalStateException("Move selection cannot have more then 1 region")
+        step(startCell)
+        val extract = createFromCells(cells).list
         return RegionPaint(extract)
     }
 
     fun createFromTownTerritory(town: Town): RegionPaint {
         val maxDepth = town.selectionTerritory
-        fun step(cell: Cell, depth: Int): ArrayList<Cell> {
-            val list = ArrayList<Cell>()
+        val cells = ArrayList<Cell>()
+        fun step(cell: Cell, depth: Int) {
+            if (cell !in cells)
+                cells.add(cell)
             if (depth == maxDepth) {
-                list.add(cell)
-                return list
+                return
             }
-            for (n in field.getNeighbours(cell).filter { it !in list })
-                list.addAll(step(cell, depth + 1))
-
-            return list
+            for (n in field.getNeighbours(cell).filter { it !in cells })
+                step(n, depth + 1)
         }
 
-        val extract = createFromCells(step(field[town.x, town.y], 0)).list
+        step(field[town], 0)
+        val extract = createFromCells(cells).list
         if (extract.isEmpty() || extract.size > 1)
             throw IllegalStateException("Territory selection cannot have more then 1 region")
 
@@ -140,11 +134,13 @@ class RegionBuilder(val fieldView: FieldView, val field: Field) {
     }
 }
 
-class RegionPaint(val list: RegionList) {
+class RegionPaint internal constructor(internal val list: RegionList) {
     private var colorFill = COLOR_NONE
     private var colorBorder = COLOR_NONE
     private var lineEffects: PathEffect? = null
     private var strokeWidth = 3f
+
+    operator fun contains(cell: Cell) = cell in list.cells
 
     fun fill(colorFill: Int): RegionPaint {
         this.colorFill = colorFill

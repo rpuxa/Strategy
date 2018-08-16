@@ -1,56 +1,101 @@
 package ru.rpuxa.strategy.players
 
 import android.view.MotionEvent
-import ru.rpuxa.strategy.CELL_INSIDE_RADIUS
-import ru.rpuxa.strategy.dist
+import ru.rpuxa.strategy.*
 import ru.rpuxa.strategy.field.Cell
 import ru.rpuxa.strategy.field.Field
-import ru.rpuxa.strategy.visual.FieldView
+import ru.rpuxa.strategy.field.Location
+import ru.rpuxa.strategy.field.Unit
+import ru.rpuxa.strategy.visual.FieldVisualizer
+import ru.rpuxa.strategy.visual.animations.MoveUnitAnimation
+import ru.rpuxa.strategy.visual.view.ObjInfoController
+import ru.rpuxa.strategy.visual.view.RegionPaint
 
-class Human(override val executor: CommandExecutor, override val field: Field, override val color: Int) : Player {
+class Human(override val executor: CommandExecutor,
+            override val field: Field,
+            override val color: Int,
+            val visual: FieldVisualizer) : Player {
 
+    override fun onStart() {
+        visual.draw(field)
+    }
+
+    override fun onMoveUnit(from: Location, to: Location, sender: Player) {
+        visual.animator.animate(MoveUnitAnimation(from, to, field[to].unit, 1000))
+        moveMode.off(false)
+    }
+
+    override fun onRuleViolate(rule: RuleException) {
+        throw rule
+    }
 
     private var lastTouch = null as Array<Float>?
     private var firstTouch = null as Array<Float>?
 
-    fun onTouch(fieldView: FieldView, event: MotionEvent) {
+    fun onTouch(event: MotionEvent) {
+
         fun Cell.click() {
-
+            if (moveMode.running) {
+                if (this in moveMode.selection) {
+                    executor.moveUnit(moveMode.unit, this, this@Human)
+                    if (moveMode.unit.movePoints == 0)
+                        ObjInfoController.deactivate(this@Human, false)
+                    return
+                }
+                ObjInfoController.deactivate(this@Human, true)
+                return
+            }
+            ObjInfoController.setInfo(this, this@Human, visual, field)
         }
 
 
-        fun click(x: Float, y: Float, fieldView: FieldView) {
-            val (worldX, worldY) = fieldView.camera.projectToWorld(x, y)
-            for ((cellX, cellY, cell) in field.iterator) {
-                val (cellWorldX, cellWorldY) = fieldView.getCellCoords(cellX, cellY)
-                if (dist(cellWorldX, cellWorldY, worldX, worldY) <= CELL_INSIDE_RADIUS) {
-                    cell.click()
+        fun click(x: Float, y: Float, view: FieldVisualizer) {
+            val (worldX, worldY) = view.projectToWorld(x, y)
+            field.find {
+                val (cellWorldX, cellWorldY) = view.locationToWorld(it)
+                dist(cellWorldX, cellWorldY, worldX, worldY) <= CELL_INSIDE_RADIUS
+            }?.click() ?: Cell.NONE.click()
+        }
+        when (event.action) {
+
+            MotionEvent.ACTION_DOWN -> {
+                lastTouch = arrayOf(event.x, event.y)
+                firstTouch = arrayOf(event.x, event.y)
+            }
+
+            MotionEvent.ACTION_MOVE -> {
+                visual.translateCamera((lastTouch!![0] - event.x) / visual.width * visual.cameraWidth, (lastTouch!![1] - event.y) / visual.height * visual.cameraHeight)
+                lastTouch = arrayOf(event.x, event.y)
+            }
+
+            MotionEvent.ACTION_UP -> {
+                if (firstTouch!![0] == event.x && firstTouch!![1] == event.y) {
+                    click(event.x, event.y, visual)
                 }
             }
         }
+    }
 
+    val moveMode = MoveMode()
 
-        with(fieldView) {
-            when (event.action) {
+    inner class MoveMode internal constructor() {
 
-                MotionEvent.ACTION_DOWN -> {
-                    lastTouch = arrayOf(event.x, event.y)
-                    firstTouch = arrayOf(event.x, event.y)
-                }
+        lateinit var unit: Unit
+        lateinit var selection: RegionPaint
+        var running = false
 
-                MotionEvent.ACTION_MOVE -> {
-                    camera.x += (lastTouch!![0] - event.x) / width * camera.width
-                    camera.y += (lastTouch!![1] - event.y) / height * camera.height
-                    fieldView.invalidate()
-                    lastTouch = arrayOf(event.x, event.y)
-                }
+        fun on(unit: Unit) {
+            this.unit = unit
+            running = true
+        }
 
-                MotionEvent.ACTION_UP -> {
-                    if (firstTouch!![0] == event.x && firstTouch!![1] == event.y) {
-                        click(event.x, event.y, fieldView)
-                    }
-                }
-            }
+        fun off(invalidate: Boolean) {
+            if (!running)
+                return
+            visual.unselect(selection)
+            if (invalidate)
+                visual.invalidate()
+            running = false
         }
     }
 }
