@@ -2,8 +2,9 @@ package ru.rpuxa.strategy.players
 
 import android.graphics.Color
 import ru.rpuxa.strategy.field.Fallible
-import ru.rpuxa.strategy.field.Field
+import ru.rpuxa.strategy.field.interfaces.Field
 import ru.rpuxa.strategy.field.Location
+import ru.rpuxa.strategy.field.interfaces.Buildable
 
 interface Player {
     val executor: CommandExecutor
@@ -17,6 +18,8 @@ interface Player {
     fun onStart()
 
     fun onMoveStart()
+
+    fun onBuild(buildable: Buildable)
 
 
     companion object : Fallible {
@@ -38,6 +41,7 @@ interface Player {
 
             override fun onMoveStart() = fail()
 
+            override fun onBuild(buildable: Buildable) = fail()
         }
 
         val RED: Player = object : Player by NONE {

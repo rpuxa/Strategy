@@ -1,6 +1,6 @@
 package ru.rpuxa.strategy.visual
 
-import ru.rpuxa.strategy.field.Field
+import ru.rpuxa.strategy.field.interfaces.Field
 import ru.rpuxa.strategy.field.Location
 import ru.rpuxa.strategy.geometry.Point
 import ru.rpuxa.strategy.players.Human

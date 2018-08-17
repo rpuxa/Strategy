@@ -1,6 +1,8 @@
 package ru.rpuxa.strategy.field
 
+import ru.rpuxa.strategy.field.interfaces.MutableField
 import ru.rpuxa.strategy.field.interfaces.NaturalStructures
+import ru.rpuxa.strategy.field.interfaces.Unit
 
 typealias Matrix<T> = Array<Array<T>>
 

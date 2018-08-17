@@ -6,8 +6,8 @@ import android.graphics.Path
 import android.graphics.PathEffect
 import ru.rpuxa.strategy.*
 import ru.rpuxa.strategy.field.Cell
-import ru.rpuxa.strategy.field.Field
-import ru.rpuxa.strategy.field.Unit
+import ru.rpuxa.strategy.field.interfaces.Field
+import ru.rpuxa.strategy.field.interfaces.Unit
 import ru.rpuxa.strategy.field.objects.player.Town
 import ru.rpuxa.strategy.geometry.Line
 import ru.rpuxa.strategy.geometry.line

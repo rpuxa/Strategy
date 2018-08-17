@@ -7,10 +7,10 @@ import android.graphics.Paint
 import android.util.AttributeSet
 import android.view.View
 import ru.rpuxa.strategy.*
-import ru.rpuxa.strategy.field.Field
-import ru.rpuxa.strategy.field.FightingUnit
+import ru.rpuxa.strategy.field.interfaces.Field
+import ru.rpuxa.strategy.field.interfaces.FightingUnit
 import ru.rpuxa.strategy.field.HexagonField
-import ru.rpuxa.strategy.field.Unit
+import ru.rpuxa.strategy.field.interfaces.Unit
 import ru.rpuxa.strategy.field.interfaces.NaturalStructures
 import ru.rpuxa.strategy.field.objects.player.Town
 import ru.rpuxa.strategy.field.units.Swordsman

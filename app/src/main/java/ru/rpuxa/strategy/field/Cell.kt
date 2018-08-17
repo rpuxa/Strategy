@@ -2,12 +2,13 @@ package ru.rpuxa.strategy.field
 
 import ru.rpuxa.strategy.NO_PLAYER_COLOR_CELL
 import ru.rpuxa.strategy.NULL_COLOR_CELL
-import ru.rpuxa.strategy.field.interfaces.FieldObject
+import ru.rpuxa.strategy.field.interfaces.StaticObject
 import ru.rpuxa.strategy.field.interfaces.NaturalStructures
+import ru.rpuxa.strategy.field.interfaces.Unit
 import ru.rpuxa.strategy.players.Player
 
 
-class Cell(var obj: FieldObject,
+class Cell(var obj: StaticObject,
            var unit: Unit = Unit.NONE,
            var owner: Player = Player.NONE,
            override var x: Int,

@@ -1,4 +1,8 @@
-package ru.rpuxa.strategy.field
+package ru.rpuxa.strategy.field.interfaces
+
+import ru.rpuxa.strategy.field.Cell
+import ru.rpuxa.strategy.field.Location
+import ru.rpuxa.strategy.field.Move
 
 interface Field : Iterable<Cell> {
     val iterator: Iterator<Cell>

@@ -1,16 +1,18 @@
-package ru.rpuxa.strategy.field
+package ru.rpuxa.strategy.field.interfaces
 
-interface Unit : Location, Drawable {
+import ru.rpuxa.strategy.field.Fallible
+
+interface Unit : FieldObject, Buildable {
     var health: Int
     var movePoints: Int
 
     val maxMovePoints: Int
-    val name: String
-    val description: String
 
     companion object : Fallible {
 
         val NONE = object : Unit {
+            override val cost: Int
+                get() = fail()
             override val description: String
                 get() = fail()
             override val name: String

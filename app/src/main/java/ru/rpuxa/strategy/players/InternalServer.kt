@@ -2,12 +2,16 @@ package ru.rpuxa.strategy.players
 
 import android.graphics.Color
 import ru.rpuxa.strategy.field.*
-import ru.rpuxa.strategy.field.Unit
+import ru.rpuxa.strategy.field.interfaces.Buildable
+import ru.rpuxa.strategy.field.interfaces.MutableField
+import ru.rpuxa.strategy.field.interfaces.Unit
+import ru.rpuxa.strategy.field.objects.player.Town
 import ru.rpuxa.strategy.visual.FieldVisualizer
-import kotlin.math.ceil
 
 class InternalServer(val field: MutableField) : CommandExecutor {
     override lateinit var players: Array<Player>
+    override val controllingHuman: Human?
+        get() = players.find { it is Human } as Human?
 
     override var turn = 0
 
@@ -29,7 +33,6 @@ class InternalServer(val field: MutableField) : CommandExecutor {
     override fun moveUnit(unit: Unit, location: Location, sender: Player) {
         if (sender.checkTurn())
             return
-        //TODO проверить проверку на легальность хода
 
         val move = field.getUnitMoves(unit).find { it.cell.x == location.x && it.cell.y == location.y }
 
@@ -45,7 +48,26 @@ class InternalServer(val field: MutableField) : CommandExecutor {
         sendAll { it.onMoveUnit(from, location, sender) }
     }
 
-    override fun endMove() {
+    override fun build(buildable: Buildable, town: Town, sender: Player) {
+        if (sender.checkTurn())
+            return
+        if (town.workPoints < buildable.cost) {
+            sender.onRuleViolate(Rules.enoughMoney(buildable, town))
+            return
+        }
+        if (town.bought) {
+            sender.onRuleViolate(Rules.secondTimeBuilding())
+            return
+        }
+        town.workPoints -= buildable.cost
+        town.bought = true
+
+        sendAll { it.onBuild(buildable) }
+    }
+
+    override fun endMove(sender: Player) {
+        if (sender.checkTurn())
+            return
         turn++
         if (turn == players.size)
             turn = 0
@@ -80,12 +102,11 @@ class GameBuilder(private var visual: FieldVisualizer, private var board: Hexago
     }
 
 
-    val alone: InternalServer
-        get() {
-            val game = InternalServer(board!!)
-            val human = Human(game, game.field, Color.YELLOW, visual)
-            game.players = arrayOf(human)
-            visual.setControllingHuman(human)
-            return game
-        }
+    fun alone(): InternalServer {
+        val game = InternalServer(board!!)
+        val human = Human(game, game.field, Color.YELLOW, visual)
+        game.players = arrayOf(human)
+        visual.setControllingHuman(human)
+        return game
+    }
 }

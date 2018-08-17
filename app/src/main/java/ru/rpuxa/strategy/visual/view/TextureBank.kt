@@ -10,7 +10,9 @@ class TextureBank(private val resources: Resources) {
     private val scaledList = ArrayList<Scaled>()
     private var lastSize = -1L
 
-
+    init {
+        instance = this
+    }
 
 
     operator fun get(i: Int) = list[i]
@@ -39,11 +41,12 @@ class TextureBank(private val resources: Resources) {
     }
 
 
-
     init {
         arr.forEach { list.add(BitmapFactory.decodeResource(resources, it)) }
     }
+
     companion object {
+        lateinit var instance: TextureBank
         val arr = arrayOf(
                 R.drawable.unit,
                 R.drawable.sword,

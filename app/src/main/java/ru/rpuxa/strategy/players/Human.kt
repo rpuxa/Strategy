@@ -3,9 +3,11 @@ package ru.rpuxa.strategy.players
 import android.view.MotionEvent
 import ru.rpuxa.strategy.*
 import ru.rpuxa.strategy.field.Cell
-import ru.rpuxa.strategy.field.Field
+import ru.rpuxa.strategy.field.interfaces.Field
 import ru.rpuxa.strategy.field.Location
-import ru.rpuxa.strategy.field.Unit
+import ru.rpuxa.strategy.field.interfaces.Buildable
+import ru.rpuxa.strategy.field.interfaces.NaturalStructures
+import ru.rpuxa.strategy.field.interfaces.Unit
 import ru.rpuxa.strategy.visual.FieldVisualizer
 import ru.rpuxa.strategy.visual.animations.MoveUnitAnimation
 import ru.rpuxa.strategy.visual.view.ObjInfoController
@@ -33,12 +35,20 @@ class Human(override val executor: CommandExecutor,
         throw rule
     }
 
+    override fun onBuild(buildable: Buildable) {
+        visual.draw(field)
+    }
+
     private var lastTouch = null as Array<Float>?
     private var firstTouch = null as Array<Float>?
 
     fun onTouch(event: MotionEvent) {
 
-        fun Cell.click() {
+        fun Cell.click(chosenObj: Boolean) {
+            if (this == Cell.NONE || unit == Unit.NONE || obj == NaturalStructures.EMPTY) {
+                ObjInfoController.deactivate(this@Human, true)
+                return
+            }
             if (moveMode.running) {
                 if (this in moveMode.selection) {
                     executor.moveUnit(moveMode.unit, this, this@Human)
@@ -49,16 +59,26 @@ class Human(override val executor: CommandExecutor,
                 ObjInfoController.deactivate(this@Human, true)
                 return
             }
-            ObjInfoController.setInfo(this, this@Human, visual, field)
+
+            if (unit.movePoints > 0)
+                ObjInfoController.setInfo(this, this@Human, visual, field, chosenObj)
         }
 
 
         fun click(x: Float, y: Float, view: FieldVisualizer) {
             val (worldX, worldY) = view.projectToWorld(x, y)
-            field.find {
+            var chosenUnit = false
+            val findCell = field.find {
                 val (cellWorldX, cellWorldY) = view.locationToWorld(it)
+                chosenUnit = dist(
+                        worldX, worldY,
+                        cellWorldX + UNIT_ICON_X,
+                        cellWorldY + UNIT_ICON_Y
+
+                ) <= UNIT_ICON_RADIUS
                 dist(cellWorldX, cellWorldY, worldX, worldY) <= CELL_INSIDE_RADIUS
-            }?.click() ?: Cell.NONE.click()
+            }
+            findCell?.click(!chosenUnit) ?: Cell.NONE.click(false)
         }
         when (event.action) {
 

@@ -12,7 +12,11 @@ class GameActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.main)
-        GameBuilder(main_field).alone.start()
+        val game = GameBuilder(main_field).alone()
+        game.start()
+        next_move.setOnClickListener {
+            game.endMove(game.controllingHuman!!)
+        }
         ObjInfoController.setGameActivity(this)
     }
 }
