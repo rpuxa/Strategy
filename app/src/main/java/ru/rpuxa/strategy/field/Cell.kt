@@ -34,8 +34,3 @@ class Cell(var obj: FieldObject,
 
 
 }
-
-fun main(args: Array<String>) {
-    "Hello".say()
-}
-fun String.say() = print("say: $this")

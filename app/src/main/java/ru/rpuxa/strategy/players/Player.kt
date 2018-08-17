@@ -34,13 +34,10 @@ interface Player {
 
             override fun onMoveUnit(from: Location, to: Location, sender: Player) = fail()
 
-            override fun onStart() {
-                fail()
-            }
+            override fun onStart() = fail()
 
-            override fun onMoveStart() {
-                fail()
-            }
+            override fun onMoveStart() = fail()
+
         }
 
         val RED: Player = object : Player by NONE {

@@ -46,14 +46,18 @@ class TextureBank(private val resources: Resources) {
     companion object {
         val arr = arrayOf(
                 R.drawable.unit,
-                R.drawable.sword
+                R.drawable.sword,
+                R.drawable.flag,
+                R.drawable.peaceful_unit,
+                R.drawable.town
         )
-        val UNIT = 0
-        val SWORD = 1
+        const val UNIT = 0
+        const val SWORD = 1
+        const val FLAG = 2
+        const val PEACEFUL_UNIT = 3
+        const val TOWN = 4
     }
 
 
-    private inner class Scaled(val bitmap: Bitmap, val width: Int, val height: Int) {
-
-    }
+    private inner class Scaled(val bitmap: Bitmap, val width: Int, val height: Int)
 }

@@ -8,6 +8,7 @@ import android.util.AttributeSet
 import android.view.View
 import ru.rpuxa.strategy.*
 import ru.rpuxa.strategy.field.Field
+import ru.rpuxa.strategy.field.FightingUnit
 import ru.rpuxa.strategy.field.HexagonField
 import ru.rpuxa.strategy.field.Unit
 import ru.rpuxa.strategy.field.interfaces.NaturalStructures
@@ -15,7 +16,6 @@ import ru.rpuxa.strategy.field.units.Swordsman
 import ru.rpuxa.strategy.geometry.Point
 import ru.rpuxa.strategy.geometry.pt
 import ru.rpuxa.strategy.players.Human
-import ru.rpuxa.strategy.players.Player
 import ru.rpuxa.strategy.visual.Animation
 import ru.rpuxa.strategy.visual.FieldAnimator
 import ru.rpuxa.strategy.visual.FieldVisualizer
@@ -23,7 +23,6 @@ import ru.rpuxa.strategy.visual.animations.MoveCameraAnimation
 import ru.rpuxa.strategy.visual.animations.MoveUnitAnimation
 import java.util.*
 import kotlin.collections.ArrayList
-import kotlin.collections.HashMap
 
 
 class FieldView(context: Context, attrs: AttributeSet) : View(context, attrs), FieldVisualizer {
@@ -85,9 +84,13 @@ class FieldView(context: Context, attrs: AttributeSet) : View(context, attrs), F
             if (cell.unit != Unit.NONE) {
                 val (shiftX, shiftY) = unitsShift[cell.unit]
                 canvas.drawBitmap(cell.unit.icon, worldX + shiftX + UNIT_ICON_X, worldY + shiftY + UNIT_ICON_Y, 2 * UNIT_ICON_RADIUS, 2 * UNIT_ICON_RADIUS)
-                if (!hasBuild || shiftX != 0f || shiftY != 0f)
-                    canvas.drawBitmap(TextureBank.UNIT, worldX + shiftX + UNIT_TEXTURE_X, worldY + shiftY + UNIT_TEXTURE_Y, UNIT_TEXTURE_HEIGHT)
+                if (!hasBuild || shiftX != 0f || shiftY != 0f) {
+                    val index = if (cell.unit is FightingUnit) TextureBank.UNIT else TextureBank.PEACEFUL_UNIT
+                    canvas.drawBitmap(index, worldX + shiftX + UNIT_TEXTURE_X, worldY + shiftY + UNIT_TEXTURE_Y, UNIT_TEXTURE_HEIGHT)
+                }
             }
+            if (hasBuild)
+                canvas.drawBitmap(cell.obj.icon, worldX + UNIT_TEXTURE_X, worldY + UNIT_TEXTURE_Y, UNIT_TEXTURE_HEIGHT)
         }
     }
 
@@ -104,14 +107,10 @@ class FieldView(context: Context, attrs: AttributeSet) : View(context, attrs), F
     override fun draw(field: Field) {
         if (field !is HexagonField)
             throw IllegalStateException("FieldView cannot view not HexagonFields")
-        field[0, 0].owner = Player.RED
-        field[1, 0].owner = Player.RED
-        field[2, 0].owner = Player.RED
-        field[3, 0].owner = Player.RED
+    //    field[0, 0].obj = Town(0, 0, Player.RED)
         field[2, 0].unit = Swordsman(2, 0)
         regionBuilder = RegionBuilder(this, field)
         rebuild = true
-        // selections.add(regionBuilder.SelectionBuilder(Color.YELLOW, CornerPathEffect(15f)).moveSelection(Swordsman(3, 3)))
         invalidate()
     }
 
