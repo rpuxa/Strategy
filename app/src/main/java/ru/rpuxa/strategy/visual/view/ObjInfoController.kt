@@ -4,7 +4,10 @@ import android.animation.ValueAnimator
 import android.view.View
 import kotlinx.android.synthetic.main.main.*
 import kotlinx.android.synthetic.main.object_info.view.*
-import ru.rpuxa.strategy.*
+import ru.rpuxa.strategy.OPEN_OBJ_INFO_DIRECTION
+import ru.rpuxa.strategy.UNIT_REGION_MOVE_BORDER_COLOR
+import ru.rpuxa.strategy.UNIT_REGION_MOVE_BORDER_EFFECTS
+import ru.rpuxa.strategy.UNIT_REGION_MOVE_BORDER_WIDTH
 import ru.rpuxa.strategy.activities.GameActivity
 import ru.rpuxa.strategy.field.Cell
 import ru.rpuxa.strategy.field.Field

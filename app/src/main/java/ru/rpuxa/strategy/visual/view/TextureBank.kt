@@ -8,7 +8,7 @@ import ru.rpuxa.strategy.R
 class TextureBank(private val resources: Resources) {
     private val list = ArrayList<Bitmap>()
     private val scaledList = ArrayList<Scaled>()
-    var lastSize = -1L
+    private var lastSize = -1L
 
 
 
@@ -16,10 +16,10 @@ class TextureBank(private val resources: Resources) {
     operator fun get(i: Int) = list[i]
 
     fun getScaled(index: Int, width: Int, height: Int): Bitmap {
-        val find = scaledList.find { it.width == width && it.height == height }
+        val find = scaledList.find { it.width == width && it.height == height && it.index == index }
         if (find == null) {
             val bitmap = Bitmap.createScaledBitmap(this[index], width, height, false)
-            scaledList.add(Scaled(bitmap, width, height))
+            scaledList.add(Scaled(bitmap, width, height, index))
             return bitmap
         }
         return find.bitmap
@@ -59,5 +59,5 @@ class TextureBank(private val resources: Resources) {
     }
 
 
-    private inner class Scaled(val bitmap: Bitmap, val width: Int, val height: Int)
+    private inner class Scaled(val bitmap: Bitmap, val width: Int, val height: Int, val index: Int)
 }

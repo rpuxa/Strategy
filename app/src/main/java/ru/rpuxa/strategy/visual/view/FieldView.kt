@@ -12,10 +12,12 @@ import ru.rpuxa.strategy.field.FightingUnit
 import ru.rpuxa.strategy.field.HexagonField
 import ru.rpuxa.strategy.field.Unit
 import ru.rpuxa.strategy.field.interfaces.NaturalStructures
+import ru.rpuxa.strategy.field.objects.player.Town
 import ru.rpuxa.strategy.field.units.Swordsman
 import ru.rpuxa.strategy.geometry.Point
 import ru.rpuxa.strategy.geometry.pt
 import ru.rpuxa.strategy.players.Human
+import ru.rpuxa.strategy.players.Player
 import ru.rpuxa.strategy.visual.Animation
 import ru.rpuxa.strategy.visual.FieldAnimator
 import ru.rpuxa.strategy.visual.FieldVisualizer
@@ -107,8 +109,8 @@ class FieldView(context: Context, attrs: AttributeSet) : View(context, attrs), F
     override fun draw(field: Field) {
         if (field !is HexagonField)
             throw IllegalStateException("FieldView cannot view not HexagonFields")
-    //    field[0, 0].obj = Town(0, 0, Player.RED)
-        field[2, 0].unit = Swordsman(2, 0)
+        field[0, 0].obj = Town(0, 0, Player.RED)
+        field[0, 0].unit = Swordsman(0, 0)
         regionBuilder = RegionBuilder(this, field)
         rebuild = true
         invalidate()

@@ -18,13 +18,10 @@ interface Field : Iterable<Cell> {
         val startCell = this[unit]
         val cells = ArrayList<Move>()
         fun step(cell: Cell, depth: Int = 0) {
-            if (depth == maxDepth) {
-                if (cell.canStop)
-                    cells.add(Move(cell, depth))
-                return
-            }
-            if (cell != startCell && cells.find { it.cell == cell } == null)
+            if ((depth != maxDepth || cell.canStop) && cell != startCell && cells.find { it.cell == cell } == null)
                 cells.add(Move(cell, depth))
+            if (depth == maxDepth)
+                return
             val neighbours = getNeighbours(cell).filter { it != startCell && it.canPass }
             for (n in neighbours)
                 step(n, depth + 1)
