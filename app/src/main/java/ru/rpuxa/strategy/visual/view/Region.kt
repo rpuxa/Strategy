@@ -95,27 +95,6 @@ class RegionBuilder(val visual: FieldVisualizer, val field: Field) {
         val extract = createFromCells(field.getUnitMoves(unit).map { it.cell }).list
         return RegionPaint(extract)
     }
-
-    fun createFromTownTerritory(town: Town): RegionPaint {
-        val maxDepth = town.selectionTerritory
-        val cells = ArrayList<Cell>()
-        fun step(cell: Cell, depth: Int) {
-            if (cell !in cells)
-                cells.add(cell)
-            if (depth == maxDepth) {
-                return
-            }
-            for (n in field.getNeighbours(cell).filter { it !in cells })
-                step(n, depth + 1)
-        }
-
-        step(field[town], 0)
-        val extract = createFromCells(cells).list
-        if (extract.isEmpty() || extract.size > 1)
-            throw IllegalStateException("Territory selection cannot have more then 1 region")
-
-        return RegionPaint(extract)
-    }
 }
 
 class RegionPaint internal constructor(internal val list: RegionList) {
@@ -123,6 +102,7 @@ class RegionPaint internal constructor(internal val list: RegionList) {
     private var colorBorder = COLOR_NONE
     private var lineEffects: PathEffect? = null
     private var strokeWidth = 3f
+    private var wide = false
 
     operator fun contains(cell: Cell) = cell in list.cells
 
@@ -143,6 +123,11 @@ class RegionPaint internal constructor(internal val list: RegionList) {
 
     fun effects(vararg effects: PathEffect): RegionPaint {
         lineEffects = composeEffects(effects)
+        return this
+    }
+
+    fun wide(on: Boolean = true): RegionPaint {
+        wide = on
         return this
     }
 

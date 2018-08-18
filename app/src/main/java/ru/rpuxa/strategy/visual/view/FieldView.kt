@@ -109,8 +109,6 @@ class FieldView(context: Context, attrs: AttributeSet) : View(context, attrs), F
     override fun draw(field: Field) {
         if (field !is HexagonField)
             throw IllegalStateException("FieldView cannot view not HexagonFields")
-        field[0, 0].obj = Town(0, 0, Player.RED)
-        field[0, 0].unit = Swordsman(0, 0)
         regionBuilder = RegionBuilder(this, field)
         rebuild = true
         invalidate()
@@ -148,6 +146,12 @@ class FieldView(context: Context, attrs: AttributeSet) : View(context, attrs), F
     override fun translateCamera(deltaX: Float, deltaY: Float) {
         camera.x += deltaX
         camera.y += deltaY
+        invalidate()
+    }
+
+    override fun zoomCamera(value: Float) {
+        camera.width += value
+        camera.height += value / width * height
         invalidate()
     }
 

@@ -31,4 +31,6 @@ interface FieldVisualizer {
     fun translateCamera(deltaX: Float, deltaY: Float)
 
     fun invalidate()
+
+    fun zoomCamera(value: Float)
 }

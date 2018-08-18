@@ -27,8 +27,12 @@ class Human(override val executor: CommandExecutor,
     }
 
     override fun onMoveUnit(from: Location, to: Location, sender: Player) {
-        visual.animator.animate(MoveUnitAnimation(from, to, field[to].unit, 1000))
-        moveMode.off(false)
+        visual.animator.animate(MoveUnitAnimation(from, to, field[to].unit, 700))
+        if (moveMode.unit.movePoints == 0)
+            ObjInfoController.deactivate(this@Human, false)
+        else
+            ObjInfoController.setInfo(field[to], this, visual, field, false, true)
+
     }
 
     override fun onRuleViolate(rule: RuleException) {
@@ -39,31 +43,33 @@ class Human(override val executor: CommandExecutor,
         visual.draw(field)
     }
 
-    private var lastTouch = null as Array<Float>?
+    override fun onTownLaid(location: Location) {
+        visual.draw(field)
+    }
+
+    private var lastTouch0 = null as Array<Float>?
+    private var lastDist: Float? = null
+    private var zoomed = false
     private var firstTouch = null as Array<Float>?
 
     fun onTouch(event: MotionEvent) {
-
         fun Cell.click(chosenObj: Boolean) {
-            if (this == Cell.NONE || unit == Unit.NONE || obj == NaturalStructures.EMPTY) {
-                ObjInfoController.deactivate(this@Human, true)
-                return
-            }
             if (moveMode.running) {
                 if (this in moveMode.selection) {
                     executor.moveUnit(moveMode.unit, this, this@Human)
-                    if (moveMode.unit.movePoints == 0)
-                        ObjInfoController.deactivate(this@Human, false)
                     return
                 }
                 ObjInfoController.deactivate(this@Human, true)
                 return
             }
 
-            if (unit.movePoints > 0)
-                ObjInfoController.setInfo(this, this@Human, visual, field, chosenObj)
-        }
+            if (this == Cell.NONE || unit == Unit.NONE && obj == NaturalStructures.EMPTY) {
+                ObjInfoController.deactivate(this@Human, true)
+                return
+            }
 
+            ObjInfoController.setInfo(this, this@Human, visual, field, chosenObj, false)
+        }
 
         fun click(x: Float, y: Float, view: FieldVisualizer) {
             val (worldX, worldY) = view.projectToWorld(x, y)
@@ -80,22 +86,43 @@ class Human(override val executor: CommandExecutor,
             }
             findCell?.click(!chosenUnit) ?: Cell.NONE.click(false)
         }
+
+
         when (event.action) {
 
             MotionEvent.ACTION_DOWN -> {
-                lastTouch = arrayOf(event.x, event.y)
+                lastTouch0 = arrayOf(event.x, event.y)
                 firstTouch = arrayOf(event.x, event.y)
             }
 
-            MotionEvent.ACTION_MOVE -> {
-                visual.translateCamera((lastTouch!![0] - event.x) / visual.width * visual.cameraWidth, (lastTouch!![1] - event.y) / visual.height * visual.cameraHeight)
-                lastTouch = arrayOf(event.x, event.y)
+            MotionEvent.ACTION_MOVE -> when (event.pointerCount) {
+                1 -> if (!zoomed) {
+                    visual.translateCamera((lastTouch0!![0] - event.x) / visual.width * visual.cameraWidth, (lastTouch0!![1] - event.y) / visual.height * visual.cameraHeight)
+                    lastTouch0 = arrayOf(event.x, event.y)
+                }
+
+                2 -> {
+                    val currentDist = dist(
+                            event.getAxisValue(MotionEvent.AXIS_X, 0),
+                            event.getAxisValue(MotionEvent.AXIS_Y, 0),
+                            event.getAxisValue(MotionEvent.AXIS_X, 1),
+                            event.getAxisValue(MotionEvent.AXIS_Y, 1)
+                    )
+                    if (lastDist != null) {
+                        visual.zoomCamera(lastDist!! - currentDist)
+                    }
+
+                    lastDist = currentDist
+
+                    zoomed = true
+                }
             }
 
             MotionEvent.ACTION_UP -> {
-                if (firstTouch!![0] == event.x && firstTouch!![1] == event.y) {
+                if (!zoomed && firstTouch!![0] == event.x && firstTouch!![1] == event.y) {
                     click(event.x, event.y, visual)
                 }
+                zoomed = false
             }
         }
     }

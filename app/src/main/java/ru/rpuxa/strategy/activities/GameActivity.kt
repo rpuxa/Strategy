@@ -15,7 +15,9 @@ class GameActivity : AppCompatActivity() {
         val game = GameBuilder(main_field).alone()
         game.start()
         next_move.setOnClickListener {
-            game.endMove(game.controllingHuman!!)
+            val human = game.controllingHuman!!
+            ObjInfoController.deactivate(human, true)
+            game.endMove(human)
         }
         ObjInfoController.setGameActivity(this)
     }

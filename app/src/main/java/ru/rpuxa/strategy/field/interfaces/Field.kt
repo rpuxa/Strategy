@@ -3,6 +3,8 @@ package ru.rpuxa.strategy.field.interfaces
 import ru.rpuxa.strategy.field.Cell
 import ru.rpuxa.strategy.field.Location
 import ru.rpuxa.strategy.field.Move
+import ru.rpuxa.strategy.field.objects.player.Town
+import ru.rpuxa.strategy.visual.view.RegionPaint
 
 interface Field : Iterable<Cell> {
     val iterator: Iterator<Cell>
@@ -22,8 +24,14 @@ interface Field : Iterable<Cell> {
         val startCell = this[unit]
         val cells = ArrayList<Move>()
         fun step(cell: Cell, depth: Int = 0) {
-            if ((depth != maxDepth || cell.canStop) && cell != startCell && cells.find { it.cell == cell } == null)
+            if (cell.canStop && cell != startCell && cells.find { it.cell == cell && it.steps <= depth } == null) {
+                for (move in cells)
+                    if (move.cell == cell) {
+                        cells.remove(move)
+                        break
+                    }
                 cells.add(Move(cell, depth))
+            }
             if (depth == maxDepth)
                 return
             val neighbours = getNeighbours(cell).filter { it != startCell && it.canPass }
@@ -32,6 +40,23 @@ interface Field : Iterable<Cell> {
         }
         step(startCell)
 
+        return cells
+    }
+
+    fun getTownTerritory(town: Town): ArrayList<Cell> {
+        val maxDepth = town.selectionTerritory
+        val cells = ArrayList<Cell>()
+        fun step(cell: Cell, depth: Int) {
+            if (cell !in cells)
+                cells.add(cell)
+            if (depth == maxDepth) {
+                return
+            }
+            for (n in getNeighbours(cell))
+                step(n, depth + 1)
+        }
+
+        step(this[town], 0)
         return cells
     }
 }

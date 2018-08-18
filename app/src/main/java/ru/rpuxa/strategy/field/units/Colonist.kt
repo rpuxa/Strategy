@@ -7,7 +7,7 @@ class Colonist(override var x: Int, override var y: Int) : PeacefulUnit {
     override val cost = 450
     override val name = "Поселенец"
     override val description = "Мирный житель, закладывающий новые города"
-    override val icon = TextureBank.SWORD
+    override val icon = TextureBank.FLAG
     override val maxMovePoints = 2
 
     override var movePoints = maxMovePoints

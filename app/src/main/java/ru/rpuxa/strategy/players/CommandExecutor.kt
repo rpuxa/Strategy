@@ -18,4 +18,6 @@ interface CommandExecutor {
     fun endMove(sender: Player)
 
     fun build(buildable: Buildable, town: Town, sender: Player)
+
+    fun layTown(location: Location, sender: Player)
 }
