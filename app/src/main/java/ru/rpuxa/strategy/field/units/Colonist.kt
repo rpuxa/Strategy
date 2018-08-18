@@ -3,6 +3,9 @@ package ru.rpuxa.strategy.field.units
 import ru.rpuxa.strategy.field.interfaces.PeacefulUnit
 import ru.rpuxa.strategy.visual.view.TextureBank
 
+/**
+ * Поселенец. Закладывает новые города
+ */
 class Colonist(override var x: Int, override var y: Int) : PeacefulUnit {
     override val cost = 450
     override val name = "Поселенец"
@@ -12,8 +15,4 @@ class Colonist(override var x: Int, override var y: Int) : PeacefulUnit {
 
     override var movePoints = maxMovePoints
     override var health = 100
-
-    companion object {
-        val INSTANCE = Colonist(Int.MAX_VALUE, Int.MAX_VALUE)
-    }
 }

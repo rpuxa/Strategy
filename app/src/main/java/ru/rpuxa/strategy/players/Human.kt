@@ -3,20 +3,30 @@ package ru.rpuxa.strategy.players
 import android.view.MotionEvent
 import ru.rpuxa.strategy.*
 import ru.rpuxa.strategy.field.Cell
-import ru.rpuxa.strategy.field.interfaces.Field
 import ru.rpuxa.strategy.field.Location
 import ru.rpuxa.strategy.field.interfaces.Buildable
-import ru.rpuxa.strategy.field.interfaces.NaturalStructures
+import ru.rpuxa.strategy.field.interfaces.Field
+import ru.rpuxa.strategy.field.interfaces.StaticObject
 import ru.rpuxa.strategy.field.interfaces.Unit
 import ru.rpuxa.strategy.visual.FieldVisualizer
 import ru.rpuxa.strategy.visual.animations.MoveUnitAnimation
 import ru.rpuxa.strategy.visual.view.ObjInfoController
 import ru.rpuxa.strategy.visual.view.RegionPaint
 
-class Human(override val executor: CommandExecutor,
-            override val field: Field,
-            override val color: Int,
-            val visual: FieldVisualizer) : Player {
+/**
+ * Игрок, который управляется человеком
+ */
+class Human(
+        override val executor: Server,
+        override val field: Field,
+        override val color: Int,
+        /**
+         * Через [visual] человек получает информацию о состоянии поля
+         * (экран телефона или компьютера), и взаимодействует с ним
+         * (тыкая на экран телефона или с помощью мыши)
+         */
+        val visual: FieldVisualizer
+) : Player {
 
     override fun onStart() {
         visual.draw(field)
@@ -63,7 +73,7 @@ class Human(override val executor: CommandExecutor,
                 return
             }
 
-            if (this == Cell.NONE || unit == Unit.NONE && obj == NaturalStructures.EMPTY) {
+            if (this == Cell.NONE || unit == Unit.NONE && obj == StaticObject.EMPTY) {
                 ObjInfoController.deactivate(this@Human, true)
                 return
             }
@@ -143,7 +153,7 @@ class Human(override val executor: CommandExecutor,
         fun off(invalidate: Boolean) {
             if (!running)
                 return
-            visual.unselect(selection)
+            visual.deselect(selection)
             if (invalidate)
                 visual.invalidate()
             running = false

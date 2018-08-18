@@ -5,6 +5,9 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import ru.rpuxa.strategy.R
 
+/**
+ * Хранилище текстур для android
+ */
 class TextureBank(private val resources: Resources) {
     private val list = ArrayList<Bitmap>()
     private val scaledList = ArrayList<Scaled>()

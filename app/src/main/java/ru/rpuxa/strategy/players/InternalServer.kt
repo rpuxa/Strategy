@@ -1,14 +1,18 @@
 package ru.rpuxa.strategy.players
 
-import android.graphics.Color
-import ru.rpuxa.strategy.field.*
-import ru.rpuxa.strategy.field.interfaces.*
+import ru.rpuxa.strategy.copyLocation
+import ru.rpuxa.strategy.field.Location
+import ru.rpuxa.strategy.field.interfaces.Buildable
+import ru.rpuxa.strategy.field.interfaces.MutableField
+import ru.rpuxa.strategy.field.interfaces.StaticObject
 import ru.rpuxa.strategy.field.interfaces.Unit
 import ru.rpuxa.strategy.field.objects.player.Town
 import ru.rpuxa.strategy.field.units.Colonist
-import ru.rpuxa.strategy.visual.FieldVisualizer
 
-class InternalServer(val field: MutableField) : CommandExecutor {
+/**
+ * Реализация Server для оффлайн игр
+ */
+class InternalServer(val field: MutableField) : Server {
     override lateinit var players: Array<Player>
     override val controllingHuman: Human?
         get() = players.find { it is Human } as Human?
@@ -33,20 +37,20 @@ class InternalServer(val field: MutableField) : CommandExecutor {
         players[turn].onMoveStart()
     }
 
-    override fun moveUnit(unit: Unit, location: Location, sender: Player) {
+    override fun moveUnit(unit: Unit, toLocation: Location, sender: Player) {
         if (sender.checkTurn())
             return
 
-        val move = field.getUnitMoves(unit).find { it.cell.x == location.x && it.cell.y == location.y }
+        val move = field.getUnitMoves(unit).find { it.cell.x == toLocation.x && it.cell.y == toLocation.y }
 
         when {
-            move == null -> sender.onRuleViolate(Rules.invalidMove())
-            move.steps > unit.movePoints -> sender.onRuleViolate(Rules.enoughMovePoints())
+            move == null -> sender.onRuleViolate(Rules.invalidMove)
+            move.steps > unit.movePoints -> sender.onRuleViolate(Rules.enoughMovePoints)
             else -> {
                 unit.movePoints -= move.steps
                 val from = unit.copyLocation()
-                field.changeLocationUnit(unit, location)
-                sendAll { it.onMoveUnit(from, location, sender) }
+                field.changeLocationUnit(unit, toLocation)
+                sendAll { it.onMoveUnit(from, toLocation, sender) }
             }
         }
     }
@@ -56,7 +60,7 @@ class InternalServer(val field: MutableField) : CommandExecutor {
             return
         when {
             town.workPoints < buildable.cost -> sender.onRuleViolate(Rules.enoughMoney(buildable, town))
-            town.bought -> sender.onRuleViolate(Rules.secondTimeBuilding())
+            town.bought -> sender.onRuleViolate(Rules.secondTimeBuilding)
             else -> {
                 town.workPoints -= buildable.cost
                 town.bought = true
@@ -79,9 +83,9 @@ class InternalServer(val field: MutableField) : CommandExecutor {
 
         val cell = field[location]
         when {
-            cell.unit !is Colonist -> sender.onRuleViolate(Rules.noColonistLayTown())
-            cell.obj != NaturalStructures.EMPTY -> sender.onRuleViolate(Rules.layTownNoEmptyCell())
-            cell.unit.movePoints == 0 -> sender.onRuleViolate(Rules.enoughMovePoints())
+            cell.unit !is Colonist -> sender.onRuleViolate(Rules.noColonistLayTown)
+            cell.obj != StaticObject.EMPTY -> sender.onRuleViolate(Rules.layTownNoEmptyCell)
+            cell.unit.movePoints == 0 -> sender.onRuleViolate(Rules.enoughMovePoints)
             else -> {
                 cell.unit = Unit.NONE
                 cell.obj = Town(location.x, location.y, sender)
@@ -113,7 +117,7 @@ class InternalServer(val field: MutableField) : CommandExecutor {
 
     private fun Player.checkTurn(): Boolean {
         if (!isHisTurn) {
-            onRuleViolate(Rules.moveBeforeYouTurn())
+            onRuleViolate(Rules.moveBeforeYouTurn)
             return true
         }
         return false
@@ -123,23 +127,4 @@ class InternalServer(val field: MutableField) : CommandExecutor {
         get() = players[0] == this
 
     private inline fun sendAll(block: (Player) -> kotlin.Unit) = players.forEach(block)
-}
-
-
-class GameBuilder(private var visual: FieldVisualizer, private var board: HexagonField? = null) {
-
-    init {
-        if (board == null) {
-            board = GameBoardCreator.square(10, 5)
-        }
-    }
-
-
-    fun alone(): InternalServer {
-        val game = InternalServer(board!!)
-        val human = Human(game, game.field, Color.RED, visual)
-        game.players = arrayOf(human)
-        visual.setControllingHuman(human)
-        return game
-    }
 }

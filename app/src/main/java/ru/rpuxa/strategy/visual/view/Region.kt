@@ -8,10 +8,7 @@ import ru.rpuxa.strategy.*
 import ru.rpuxa.strategy.field.Cell
 import ru.rpuxa.strategy.field.interfaces.Field
 import ru.rpuxa.strategy.field.interfaces.Unit
-import ru.rpuxa.strategy.field.objects.player.Town
 import ru.rpuxa.strategy.geometry.Line
-import ru.rpuxa.strategy.geometry.line
-import ru.rpuxa.strategy.geometry.pt
 import ru.rpuxa.strategy.visual.FieldVisualizer
 import java.lang.Math.PI
 import java.util.*
@@ -20,12 +17,32 @@ import kotlin.math.abs
 import kotlin.math.cos
 import kotlin.math.sin
 
-internal class Region(val border: Path = Path())
+/**
+ * Регион - несколько клеток на поле, например территория игрока.
+ * Может выделятся другим цветом
+ */
+class Region(
+        /**
+         * Граница региона, проходящая по его периметру
+         */
+        val border: Path = Path()
+)
 
-internal class RegionList(val cells: Collection<Cell>) : ArrayList<Region>()
+/**
+ * Список регионов
+ *
+ * [cells] - коллекция клеток, который содержат все регионы вместе
+ */
+class RegionList(val cells: Collection<Cell>) : ArrayList<Region>()
 
+/**
+ * Строитель регионов
+ */
 class RegionBuilder(val visual: FieldVisualizer, val field: Field) {
 
+    /**
+     *  Создать регион из коллекции клеток
+     */
     fun createFromCells(cells: Collection<Cell>): RegionPaint {
         val lines = LinkedList<Line>()
         for (cell in cells) {
@@ -67,6 +84,9 @@ class RegionBuilder(val visual: FieldVisualizer, val field: Field) {
         return RegionPaint(regions)
     }
 
+    /**
+     * Создать регионы из территорий игроков
+     */
     fun createFromTerritories(): Array<RegionPaint> {
         val list = LinkedList<Cell>()
         for (cell in field) {
@@ -91,13 +111,20 @@ class RegionBuilder(val visual: FieldVisualizer, val field: Field) {
         return regions.toTypedArray()
     }
 
+    /**
+     * Создать регион из возможных ходов юнита
+     */
     fun createFromUnitMove(unit: Unit): RegionPaint {
         val extract = createFromCells(field.getUnitMoves(unit).map { it.cell }).list
         return RegionPaint(extract)
     }
 }
 
-class RegionPaint internal constructor(internal val list: RegionList) {
+
+/**
+ * Класс для отрисовки регионов
+ */
+class RegionPaint(val list: RegionList) {
     private var colorFill = COLOR_NONE
     private var colorBorder = COLOR_NONE
     private var lineEffects: PathEffect? = null
@@ -106,31 +133,49 @@ class RegionPaint internal constructor(internal val list: RegionList) {
 
     operator fun contains(cell: Cell) = cell in list.cells
 
+    /**
+     * Заполнить регион цветом [colorFill]
+     */
     fun fill(colorFill: Int): RegionPaint {
         this.colorFill = colorFill
         return this
     }
 
+    /**
+     * Установить цвет границы региона
+     */
     fun board(colorBorder: Int): RegionPaint {
         this.colorBorder = colorBorder
         return this
     }
 
+    /**
+     * Установить ширину региона
+     */
     fun boardWidth(w: Float): RegionPaint {
         this.strokeWidth = w
         return this
     }
 
+    /**
+     * Установить эффекты для границы региона
+     */
     fun effects(vararg effects: PathEffect): RegionPaint {
         lineEffects = composeEffects(effects)
         return this
     }
 
+    /**
+     * Установить|снять сетку
+     */
     fun wide(on: Boolean = true): RegionPaint {
         wide = on
         return this
     }
 
+    /**
+     * Отрисовать регион без его границы
+     */
     fun paintFill(canvas: Canvas, paint: Paint) {
         if (colorFill != COLOR_NONE) {
             paint.pathEffect = null
@@ -143,6 +188,9 @@ class RegionPaint internal constructor(internal val list: RegionList) {
         }
     }
 
+    /**
+     * Отрисовать регион без его заполнения цветом
+     */
     fun paintBorder(canvas: Canvas, paint: Paint) {
         if (colorBorder != COLOR_NONE) {
             paint.pathEffect = lineEffects

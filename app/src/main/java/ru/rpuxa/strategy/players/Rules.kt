@@ -3,28 +3,32 @@ package ru.rpuxa.strategy.players
 import ru.rpuxa.strategy.field.interfaces.Buildable
 import ru.rpuxa.strategy.field.objects.player.Town
 
-typealias RE = ru.rpuxa.strategy.players.RuleException
+private typealias RE = ru.rpuxa.strategy.players.RuleException
 
+
+/**
+ * Правила, которые сервер отсылает игроку в случае их нарушения
+ */
 object Rules {
 
 
-    fun moveBeforeYouTurn() = RE("You cant move before you turn")
+    val moveBeforeYouTurn = RE("You cant move before you turn")
 
-    fun invalidMove() = RE("Invalid move!")
+    val invalidMove = RE("Invalid move!")
 
     fun enoughMoney(buildable: Buildable, town: Town) =
             RE("Not enough money to build ${buildable.name}, cost ${buildable.cost}, wp ${town.workPoints}")
 
-    fun secondTimeBuilding() =
+    val secondTimeBuilding =
             RE("You cant buy more then two buildings in town!")
 
-    fun noColonistLayTown() =
+    val noColonistLayTown =
             RE("Only colonist can lay the town!")
 
-    fun layTownNoEmptyCell() =
+    val layTownNoEmptyCell =
             RE("You cant lay town on not empty cell!")
 
-    fun enoughMovePoints() =
+    val enoughMovePoints =
             RE("Needed more move point to do this")
 }
 

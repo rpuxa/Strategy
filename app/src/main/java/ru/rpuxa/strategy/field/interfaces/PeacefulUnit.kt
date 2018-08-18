@@ -1,5 +1,7 @@
 package ru.rpuxa.strategy.field.interfaces
 
-interface PeacefulUnit : Unit {
-
-}
+/**
+ * Мирный юнит, может быть убит без боя
+ * боевым юнитом [FightingUnit]
+ */
+interface PeacefulUnit : Unit

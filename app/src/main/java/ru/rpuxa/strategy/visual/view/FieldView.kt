@@ -7,17 +7,13 @@ import android.graphics.Paint
 import android.util.AttributeSet
 import android.view.View
 import ru.rpuxa.strategy.*
+import ru.rpuxa.strategy.field.HexagonField
 import ru.rpuxa.strategy.field.interfaces.Field
 import ru.rpuxa.strategy.field.interfaces.FightingUnit
-import ru.rpuxa.strategy.field.HexagonField
+import ru.rpuxa.strategy.field.interfaces.StaticObject
 import ru.rpuxa.strategy.field.interfaces.Unit
-import ru.rpuxa.strategy.field.interfaces.NaturalStructures
-import ru.rpuxa.strategy.field.objects.player.Town
-import ru.rpuxa.strategy.field.units.Swordsman
 import ru.rpuxa.strategy.geometry.Point
-import ru.rpuxa.strategy.geometry.pt
 import ru.rpuxa.strategy.players.Human
-import ru.rpuxa.strategy.players.Player
 import ru.rpuxa.strategy.visual.Animation
 import ru.rpuxa.strategy.visual.FieldAnimator
 import ru.rpuxa.strategy.visual.FieldVisualizer
@@ -26,7 +22,9 @@ import ru.rpuxa.strategy.visual.animations.MoveUnitAnimation
 import java.util.*
 import kotlin.collections.ArrayList
 
-
+/**
+ * Реализация [FieldVisualizer] для android устройств
+ */
 class FieldView(context: Context, attrs: AttributeSet) : View(context, attrs), FieldVisualizer {
 
     override val animator = Animator()
@@ -82,7 +80,7 @@ class FieldView(context: Context, attrs: AttributeSet) : View(context, attrs), F
 
         for (cell in regionBuilder.field) {
             val (worldX, worldY) = locationToWorld(cell)
-            val hasBuild = cell.obj != NaturalStructures.EMPTY
+            val hasBuild = cell.obj != StaticObject.EMPTY
             if (cell.unit != Unit.NONE) {
                 val (shiftX, shiftY) = unitsShift[cell.unit]
                 canvas.drawBitmap(cell.unit.icon, worldX + shiftX + UNIT_ICON_X, worldY + shiftY + UNIT_ICON_Y, 2 * UNIT_ICON_RADIUS, 2 * UNIT_ICON_RADIUS)
@@ -130,7 +128,7 @@ class FieldView(context: Context, attrs: AttributeSet) : View(context, attrs), F
         selections.add(region)
     }
 
-    override fun unselect(region: RegionPaint) {
+    override fun deselect(region: RegionPaint) {
         selections.remove(region)
     }
 

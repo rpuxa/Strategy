@@ -1,12 +1,11 @@
 package ru.rpuxa.strategy.field
 
 import ru.rpuxa.strategy.field.interfaces.MutableField
-import ru.rpuxa.strategy.field.interfaces.NaturalStructures
 import ru.rpuxa.strategy.field.interfaces.Unit
 
-typealias Matrix<T> = Array<Array<T>>
+private typealias Matrix<T> = Array<Array<T>>
 
-val neighboursEven = arrayOf(
+private val neighboursEven = arrayOf(
         1 to 0,
         2 to 0,
         1 to -1,
@@ -15,7 +14,7 @@ val neighboursEven = arrayOf(
         -1 to 0
 )
 
-val neighborsOdd = arrayOf(
+private val neighborsOdd = arrayOf(
         1 to 1,
         2 to 0,
         1 to 0,
@@ -74,10 +73,3 @@ class HexagonField(private val field: Matrix<Cell>) : MutableField {
 
 }
 
-object GameBoardCreator {
-
-    fun square(width: Int, height: Int): HexagonField {
-        val field = Array(width) { x -> Array(height) { y -> Cell(NaturalStructures.EMPTY, x = x, y = y) } }
-        return HexagonField(field)
-    }
-}

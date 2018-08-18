@@ -2,24 +2,14 @@ package ru.rpuxa.strategy.field.interfaces
 
 import ru.rpuxa.strategy.field.Fallible
 
+
+/**
+ * Интерфейс для природных структур, которые не могут быть
+ * построены
+ *
+ * К примеру горы
+ */
 interface NaturalStructures : StaticObject {
 
-    companion object : Fallible {
-        val EMPTY: StaticObject = object : NaturalStructures {
-            override val icon: Int
-                get() = fail()
-            override val passable = true
-            override var x: Int
-                set(value) = fail()
-                get() = fail()
-            override var y: Int
-                set(value) = fail()
-                get() = fail()
-            override val description: String
-                get() = fail()
-            override val name: String
-                get() = fail()
 
-        }
-    }
 }

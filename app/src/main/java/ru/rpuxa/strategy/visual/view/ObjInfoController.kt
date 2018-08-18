@@ -10,9 +10,7 @@ import ru.rpuxa.strategy.*
 import ru.rpuxa.strategy.activities.GameActivity
 import ru.rpuxa.strategy.field.Cell
 import ru.rpuxa.strategy.field.copyLocation
-import ru.rpuxa.strategy.field.interfaces.Field
-import ru.rpuxa.strategy.field.interfaces.FieldObject
-import ru.rpuxa.strategy.field.interfaces.NaturalStructures
+import ru.rpuxa.strategy.field.interfaces.*
 import ru.rpuxa.strategy.field.interfaces.Unit
 import ru.rpuxa.strategy.field.objects.player.Town
 import ru.rpuxa.strategy.field.units.Colonist
@@ -30,7 +28,7 @@ object ObjInfoController {
 
     fun setInfo(cell: Cell, human: Human, visual: FieldVisualizer, field: Field, choseObj: Boolean, update: Boolean) {
         val selection: FieldObject = when {
-            cell.obj != NaturalStructures.EMPTY && (choseObj || cell.unit == Unit.NONE) -> cell.obj
+            cell.obj != StaticObject.EMPTY && (choseObj || cell.unit == Unit.NONE) -> cell.obj
             cell.unit != Unit.NONE -> cell.unit
             else -> throw IllegalStateException("Cannot set empty cell")
         }
