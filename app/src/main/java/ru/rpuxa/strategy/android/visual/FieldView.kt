@@ -64,8 +64,17 @@ class FieldView(context: Context, attrs: AttributeSet) : View(context, attrs), F
     private val activity = context as Activity
     private val headerController = HeaderInfoController()
 
-    init {
+    override fun onCreate() {
         setOnTouchListener(Controller())
+
+        activity.main_obj_info.obj_close.setOnClickListener {
+            closeInfoHeader(true)
+        }
+        activity.main_obj_info.visibility = View.GONE
+        activity.next_move.setOnClickListener {
+            closeInfoHeader(true)
+            human.executor.endMove(human)
+        }
     }
 
     override fun onDraw(canvas: Canvas?) {
@@ -112,10 +121,7 @@ class FieldView(context: Context, attrs: AttributeSet) : View(context, attrs), F
     override fun draw(field: Field) {
         if (field !is HexagonField)
             throw IllegalStateException("FieldView cannot view not HexagonFields")
-        activity.next_move.setOnClickListener {
-            closeInfoHeader(true)
-            human.executor.endMove(human)
-        }
+        this.field = field
         regionBuilder = StandardRegionBuilder(this, field)
         rebuild = true
         invalidate()
@@ -373,7 +379,7 @@ class FieldView(context: Context, attrs: AttributeSet) : View(context, attrs), F
                     return
                 }
 
-                openInfoHeader(if (chosenObj) obj else unit)
+                openInfoHeader(if (chosenObj && obj != STATIC_OBJECT_NONE) obj else unit)
             }
 
             fun click(x: Float, y: Float) {
@@ -442,13 +448,6 @@ class FieldView(context: Context, attrs: AttributeSet) : View(context, attrs), F
 
     private inner class HeaderInfoController {
         private var currentSelection: FieldObject? = null
-
-        init {
-            activity.main_obj_info.obj_close.setOnClickListener {
-                closeInfoHeader(true)
-            }
-            activity.main_obj_info.visibility = View.GONE
-        }
 
         fun setHeaderInfo(selectedObject: FieldObject) {
             fun moveModeOn() {

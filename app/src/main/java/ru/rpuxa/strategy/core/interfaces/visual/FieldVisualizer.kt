@@ -20,6 +20,8 @@ interface FieldVisualizer {
 
     var field: Field
 
+    fun onCreate()
+
     /**
      * Один из главных методов для отрисовки поля
      */

@@ -26,6 +26,7 @@ class Human(
 ) : Player {
 
     override fun onStart() {
+        visual.onCreate()
         visual.draw(field)
     }
 
