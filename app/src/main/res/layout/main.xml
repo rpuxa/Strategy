@@ -6,7 +6,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <ru.rpuxa.strategy.visual.view.FieldView
+    <ru.rpuxa.strategy.android.visual.FieldView
         android:id="@+id/main_field"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
