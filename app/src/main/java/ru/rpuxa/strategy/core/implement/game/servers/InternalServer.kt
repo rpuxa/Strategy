@@ -19,8 +19,7 @@ import ru.rpuxa.strategy.core.others.copyLocation
  */
 class InternalServer(val field: MutableField) : Server {
     override lateinit var players: Array<Player>
-    override val controllingHuman: Human?
-        get() = players.find { it is Human } as Human?
+
 
     override var turn = 0
 

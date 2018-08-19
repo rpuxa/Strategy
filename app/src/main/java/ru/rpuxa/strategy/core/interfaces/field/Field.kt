@@ -1,7 +1,9 @@
 package ru.rpuxa.strategy.core.interfaces.field
 
 import ru.rpuxa.strategy.core.implement.field.statics.player.Town
+import ru.rpuxa.strategy.core.interfaces.field.objects.units.FightingUnit
 import ru.rpuxa.strategy.core.interfaces.field.objects.units.Unit
+import ru.rpuxa.strategy.core.others.UNIT_NONE
 
 /**
  *  Read-only Интерфейс для поля игры, который
@@ -9,7 +11,7 @@ import ru.rpuxa.strategy.core.interfaces.field.objects.units.Unit
  *  Может быть проитерирован.
  *  Не имеет методов для изменения @see [MutableField]
  */
-interface Field : Iterable<Cell> {
+interface   Field : Iterable<Cell> {
     /**
      * Итератор из интерфейса Iterable
      * Для удобства переделан в свойство
@@ -38,15 +40,18 @@ interface Field : Iterable<Cell> {
         val startCell = this[unit]
         val cells = ArrayList<UnitMove>()
         fun step(cell: Cell, depth: Int = 0) {
-            if (cell.canStop && cell != startCell && cells.find { it.cell == cell && it.steps <= depth } == null) {
+            if ((cell.canStop || cell.unit != UNIT_NONE && cell.unit.owner != unit.owner) &&
+                    cell != startCell &&
+                    cells.find { it.cell == cell && it.steps <= depth } == null) {
                 for (move in cells)
                     if (move.cell == cell) {
                         cells.remove(move)
                         break
                     }
+                if (cell.unit == UNIT_NONE || unit is FightingUnit)
                 cells.add(UnitMove(cell, depth))
             }
-            if (depth == maxDepth)
+            if (depth == maxDepth || cell.unit != UNIT_NONE)
                 return
             val neighbours = getNeighbours(cell).filter { it != startCell && it.canPass }
             for (n in neighbours)

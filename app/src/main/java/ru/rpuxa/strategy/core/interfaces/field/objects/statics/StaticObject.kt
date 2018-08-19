@@ -3,7 +3,7 @@ package ru.rpuxa.strategy.core.interfaces.field.objects.statics
 import ru.rpuxa.strategy.core.interfaces.field.objects.FieldObject
 
 /**
- * Статический объект на поле, которые
+ * Статичный объект на поле, который
  * не может изменять своего расположения
  */
 interface StaticObject : FieldObject {

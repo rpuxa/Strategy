@@ -32,6 +32,7 @@ import ru.rpuxa.strategy.core.interfaces.field.Cell
 import ru.rpuxa.strategy.core.interfaces.field.Field
 import ru.rpuxa.strategy.core.interfaces.field.objects.FieldObject
 import ru.rpuxa.strategy.core.interfaces.field.objects.units.FightingUnit
+import ru.rpuxa.strategy.core.interfaces.field.objects.units.PeacefulUnit
 import ru.rpuxa.strategy.core.interfaces.field.objects.units.Unit
 import ru.rpuxa.strategy.core.interfaces.visual.Animation
 import ru.rpuxa.strategy.core.interfaces.visual.BoardEffect
@@ -232,7 +233,7 @@ class FieldView(context: Context, attrs: AttributeSet) : View(context, attrs), F
         drawBitmap(bitmap, centerX - bitmap.width / 2, centerY - height / 2, paint)
     }
 
-    inner class Animator internal constructor() : FieldAnimator {
+    inner class Animator : FieldAnimator {
 
         override fun animate(animation: Animation) {
             synchronized(animations) {
@@ -240,7 +241,6 @@ class FieldView(context: Context, attrs: AttributeSet) : View(context, attrs), F
             }
             startAsyncAnimate()
         }
-
 
         private val animations = ArrayDeque<Animation>()
 
@@ -319,8 +319,6 @@ class FieldView(context: Context, attrs: AttributeSet) : View(context, attrs), F
                 block(timeGone.toFloat() / duration)
             }
         }
-
-
     }
 
     private inner class Camera {
@@ -367,7 +365,23 @@ class FieldView(context: Context, attrs: AttributeSet) : View(context, attrs), F
             fun Cell.click(chosenObj: Boolean) {
                 if (human.moveMode.running) {
                     if (this in human.moveMode.selection) {
-                        human.executor.moveUnit(human.moveMode.unit, this, human)
+                        if (unit == UNIT_NONE) {
+                            //Обычное передвижение
+                            human.executor.moveUnit(human.moveMode.unit, this, human)
+                        } else {
+                            //Атака
+                            if (unit is PeacefulUnit) {
+                                human.executor.moveUnit(human.moveMode.unit, this, human)
+                                return
+                            }
+                            FightDialog(
+                                    context,
+                                    textures,
+                                    human.moveMode.unit as FightingUnit,
+                                    unit as FightingUnit) {
+                                human.executor.moveUnit(human.moveMode.unit, this, human)
+                            }
+                        }
                         return
                     }
                     closeInfoHeader(true)

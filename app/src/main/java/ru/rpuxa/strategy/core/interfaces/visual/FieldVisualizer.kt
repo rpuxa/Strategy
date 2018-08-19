@@ -13,6 +13,7 @@ import ru.rpuxa.strategy.core.interfaces.visual.region.RegionPaint
  * может взаимодействовать с игрой
  */
 interface FieldVisualizer {
+
     /**
      * Все анимации делаются через это свойство
      */
@@ -41,6 +42,7 @@ interface FieldVisualizer {
      * Перевести координаты поля в мировые координаты
      */
     fun locationToWorld(location: Location) = locationToWorld(location.x, location.y)
+
     fun locationToWorld(x: Int, y: Int): Point
 
     /**
