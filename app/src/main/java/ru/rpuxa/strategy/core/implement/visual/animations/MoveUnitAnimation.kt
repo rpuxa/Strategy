@@ -7,4 +7,6 @@ import ru.rpuxa.strategy.core.interfaces.visual.Animation
 /**
  * Анимация передвижения юнита
  */
-class MoveUnitAnimation(val from: Location, val to: Location, val unit: Unit, override val duration: Int) : Animation
+class MoveUnitAnimation(val from: Location, val to: Location, val unit: Unit, val updateAfterAnimation: Boolean, override val duration: Int) : Animation {
+    override val async = false
+}

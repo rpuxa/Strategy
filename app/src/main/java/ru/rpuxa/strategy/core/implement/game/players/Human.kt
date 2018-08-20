@@ -1,9 +1,11 @@
 package ru.rpuxa.strategy.core.implement.game.players
 
+import ru.rpuxa.strategy.core.implement.visual.animations.EndAnimations
+import ru.rpuxa.strategy.core.implement.visual.animations.HealthAnimation
 import ru.rpuxa.strategy.core.implement.visual.animations.MoveUnitAnimation
 import ru.rpuxa.strategy.core.interfaces.field.Field
 import ru.rpuxa.strategy.core.interfaces.field.Location
-import ru.rpuxa.strategy.core.interfaces.field.objects.Buildable
+import ru.rpuxa.strategy.core.interfaces.field.objects.BuildableObject
 import ru.rpuxa.strategy.core.interfaces.field.objects.units.Unit
 import ru.rpuxa.strategy.core.interfaces.game.Player
 import ru.rpuxa.strategy.core.interfaces.game.Server
@@ -35,7 +37,7 @@ class Human(
     }
 
     override fun onMoveUnit(from: Location, to: Location, sender: Player) {
-        visual.animator.animate(MoveUnitAnimation(from, to, field[to].unit, 700))
+        visual.animator.animate(MoveUnitAnimation(from, to, field[to].unit, true, 700))
         if (moveMode.unit.movePoints == 0)
             visual.closeInfoHeader( false)
         else
@@ -47,7 +49,7 @@ class Human(
         throw rule
     }
 
-    override fun onBuild(buildable: Buildable) {
+    override fun onBuild(buildableObject: BuildableObject) {
         visual.draw(field)
     }
 
@@ -55,12 +57,20 @@ class Human(
         visual.draw(field)
     }
 
+    override fun onAttack(moveFromLocation: Location, attackFromLocation: Location, attacker: Unit, defender: Unit, defenderHit: Int, attackerHit: Int) {
+        visual.closeInfoHeader( false)
+        visual.animator.animate(MoveUnitAnimation(moveFromLocation, attackFromLocation, attacker, true, 700))
+        visual.animator.animate(HealthAnimation(defender, -defenderHit, 3000))
+        visual.animator.animate(HealthAnimation(attacker, -attackerHit, 3000))
+        visual.animator.animate(EndAnimations())
+    }
+
     val moveMode = MoveMode()
 
     inner class MoveMode {
 
         lateinit var unit: Unit
-        lateinit var selection: RegionPaint
+        lateinit var selections: Array<RegionPaint>
         var running = false
 
         fun on(unit: Unit) {
@@ -71,7 +81,7 @@ class Human(
         fun off(invalidate: Boolean) {
             if (!running)
                 return
-            visual.deselect(selection)
+            selections.forEach(visual::deselect)
             if (invalidate)
                 visual.invalidate()
             running = false

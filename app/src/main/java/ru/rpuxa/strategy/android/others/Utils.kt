@@ -9,7 +9,7 @@ import java.util.*
  */
 fun composeEffects(effects: Array<out PathEffect>): PathEffect {
     if (effects.isEmpty())
-        throw IllegalStateException("effects cant be empty")
+        throw IllegalStateException("boardEffects cant be empty")
     val list = LinkedList<PathEffect>()
     effects.forEach { list.add(it) }
     while (list.size > 1) {

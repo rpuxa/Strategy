@@ -9,4 +9,6 @@ interface Animation {
      * Длительность в millis
      */
     val duration: Int
+
+    val async: Boolean
 }

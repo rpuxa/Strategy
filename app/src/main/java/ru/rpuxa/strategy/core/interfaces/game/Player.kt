@@ -3,7 +3,8 @@ package ru.rpuxa.strategy.core.interfaces.game
 import ru.rpuxa.strategy.core.implement.field.statics.player.Town
 import ru.rpuxa.strategy.core.interfaces.field.Field
 import ru.rpuxa.strategy.core.interfaces.field.Location
-import ru.rpuxa.strategy.core.interfaces.field.objects.Buildable
+import ru.rpuxa.strategy.core.interfaces.field.objects.BuildableObject
+import ru.rpuxa.strategy.core.interfaces.field.objects.units.Unit
 
 /**
  * Интерфейс игрока
@@ -62,14 +63,16 @@ interface Player {
     fun onMoveStart()
 
     /**
-     * Вызывается при постройке [Buildable] в городе
+     * Вызывается при постройке [BuildableObject] в городе
      */
-    fun onBuild(buildable: Buildable)
+    fun onBuild(buildableObject: BuildableObject)
 
     /**
      * Вызывается когда поселенец закладывает город
      */
     fun onTownLaid(location: Location)
+
+    fun onAttack(moveFromLocation: Location, attackFromLocation: Location, attacker: Unit, defender: Unit, defenderHit: Int, attackerHit: Int)
 
 }
 

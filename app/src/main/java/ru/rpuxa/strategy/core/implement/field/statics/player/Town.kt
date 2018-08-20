@@ -1,7 +1,10 @@
 package ru.rpuxa.strategy.core.implement.field.statics.player
 
+import ru.rpuxa.strategy.core.implement.field.info.statics.player.TownInfo
 import ru.rpuxa.strategy.core.implement.visual.TexturesId
-import ru.rpuxa.strategy.core.interfaces.field.objects.statics.PlayerBuildings
+import ru.rpuxa.strategy.core.interfaces.field.Location
+import ru.rpuxa.strategy.core.interfaces.field.info.statics.PlayerBuildingInfo
+import ru.rpuxa.strategy.core.interfaces.field.objects.statics.PlayerBuilding
 import ru.rpuxa.strategy.core.interfaces.game.Player
 import ru.rpuxa.strategy.core.others.INITIAL_PERFORMANCE
 import ru.rpuxa.strategy.core.others.TOWN_COUNT_PERFORMANCE_FACTOR
@@ -10,25 +13,26 @@ import ru.rpuxa.strategy.core.others.TOWN_LEVEL_PERFORMANCE_FACTOR
 /**
  * Класс города. Предназначен для постройки новых объектов [Buildable]
  */
-class Town(override var x: Int, override var y: Int, override var owner: Player) : PlayerBuildings {
-    override val icon = TexturesId.TOWN
-    override val name = "Город"
-    override val description = "Здесь вы можете создавать юниты, строить здания"
+class Town(location: Location, override var owner: Player) : PlayerBuilding {
 
-    /**
-     * Максимальное количество очков работы, которое может вмещать город
-     */
-    val maxWorkPoints = 500
+    override val info
+        get() = TownInfo
 
-    /**
-     * Радиус области, которую выделяет город вокруг себя
-     */
-    val selectionTerritory = 2
+
+    override var x = location.x
+    override var y = location.y
+
 
     /**
      * Текущее значение очков работы
      */
     var workPoints = 0
+
+    val maxWorkPoints: Int
+        get() = info.maxWorkPoints
+
+    val selectionTerritory: Int
+        get() = info.selectionTerritory
 
     /**
      * true - если в городе, что то построили [Buildable]
@@ -58,6 +62,7 @@ class Town(override var x: Int, override var y: Int, override var owner: Player)
                 ).toInt()
 
     private var daysWithoutNewLevel = 0
+
 
     /**
      * Вызывается после завершения хода.

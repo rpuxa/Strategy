@@ -29,6 +29,9 @@ interface RegionPaint {
      */
     var lineEffects: Array<BoardEffect>?
 
+
+    var fillEffects: Array<BoardEffect>?
+
     /**
      * Ширина границы
      */
@@ -71,8 +74,13 @@ interface RegionPaint {
     /**
      * Установить эффекты для границы региона
      */
-    fun effects(effects: Array<BoardEffect>): RegionPaint {
+    fun boardEffects(effects: Array<BoardEffect>): RegionPaint {
         lineEffects = effects
+        return this
+    }
+
+    fun fillEffects(effects: Array<BoardEffect>): RegionPaint {
+        fillEffects = effects
         return this
     }
 

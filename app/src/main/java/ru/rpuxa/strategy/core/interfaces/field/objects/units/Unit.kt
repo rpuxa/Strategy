@@ -1,13 +1,14 @@
 package ru.rpuxa.strategy.core.interfaces.field.objects.units
 
-import ru.rpuxa.strategy.core.interfaces.field.objects.Buildable
-import ru.rpuxa.strategy.core.interfaces.field.objects.FieldObject
+import ru.rpuxa.strategy.core.interfaces.field.info.units.UnitInfo
+import ru.rpuxa.strategy.core.interfaces.field.objects.BuildableObject
 import ru.rpuxa.strategy.core.interfaces.game.Player
 
 /**
  * Юнит. Может перемещаться по полю
  */
-interface Unit : FieldObject, Buildable {
+interface Unit : BuildableObject {
+    override val info: UnitInfo
 
     /**
      * Текущее здоровье юнита
@@ -24,7 +25,11 @@ interface Unit : FieldObject, Buildable {
     /**
      * Начальное количество [movePoints]
      */
-    val maxMovePoints: Int
+    val baseMovePoints: Int
+        get() = info.baseMovePoints
+
+    val baseHealth: Int
+        get() = info.baseHealth
 
     /**
      * Владелец юнита

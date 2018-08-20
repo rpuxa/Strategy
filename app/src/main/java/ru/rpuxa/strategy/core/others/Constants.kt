@@ -6,7 +6,9 @@ import ru.rpuxa.strategy.core.implement.visual.boardEffects.CornerBoardEffect
 import ru.rpuxa.strategy.core.implement.visual.boardEffects.DashBoardEffect
 import ru.rpuxa.strategy.core.interfaces.field.Field
 import ru.rpuxa.strategy.core.interfaces.field.Location
-import ru.rpuxa.strategy.core.interfaces.field.objects.Buildable
+import ru.rpuxa.strategy.core.interfaces.field.info.statics.StaticObjectInfo
+import ru.rpuxa.strategy.core.interfaces.field.info.units.UnitInfo
+import ru.rpuxa.strategy.core.interfaces.field.objects.BuildableObject
 import ru.rpuxa.strategy.core.interfaces.field.objects.statics.StaticObject
 import ru.rpuxa.strategy.core.interfaces.field.objects.units.Unit
 import ru.rpuxa.strategy.core.interfaces.game.Player
@@ -20,19 +22,24 @@ const val NO_PLAYER_COLOR_CELL = Color.LTGRAY
 const val NULL_COLOR_CELL = Color.BLACK
 const val BACKGROUND_FIELD_COLOR = Color.BLACK
 const val TERRITORY_COLOR_BOARD = Color.YELLOW
-const val UNIT_REGION_MOVE_BORDER_COLOR = Color.GREEN
+const val UNIT_REGION_MOVE_BORDER_COLOR = Color.BLUE
+const val UNIT_REGION_ATTACK_BORDER_COLOR = Color.RED
 
 const val CELL_RADIUS = 128f
 @JvmField
 val CELL_INSIDE_RADIUS = sqrt(3f) / 2 * CELL_RADIUS
 const val BOARD_TERRITORY_WIDTH = 15f
-const val BOARD_TERRITORY_RADIUS_CORNERS = 30f
+const val BOARD_TERRITORY_RADIUS_CORNERS = 40f
 const val UNIT_REGION_MOVE_BORDER_WIDTH = 7f
 const val UNIT_REGION_MOVE_RADIUS_CORNERS = 20f
-
-
 const val UNIT_ICON_RADIUS = 40f
 const val UNIT_ICON_X = 0f
+const val DISTANCE_FROM_UNIT_ICON_TO_HEALTH_BAR = 20f
+const val HEALTH_BAR_WIDTH = 10f
+const val HEALTH_BAR_HEIGHT = UNIT_ICON_RADIUS * 2
+
+
+
 @JvmField
 val UNIT_ICON_Y = -(CELL_RADIUS - 2 * UNIT_ICON_RADIUS / sqrt(3f)) + 5
 
@@ -47,7 +54,13 @@ val BOARD_TERRITORY_EFFECTS = arrayOf(
         CornerBoardEffect(BOARD_TERRITORY_RADIUS_CORNERS)
 )
 @JvmField
-val UNIT_REGION_MOVE_BORDER_EFFECTS = arrayOf<BoardEffect> (
+val TERRITORY_EFFECTS = arrayOf<BoardEffect>(
+        CornerBoardEffect(BOARD_TERRITORY_RADIUS_CORNERS)
+)
+
+
+@JvmField
+val UNIT_REGION_MOVE_BORDER_EFFECTS = arrayOf<BoardEffect>(
         CornerBoardEffect(UNIT_REGION_MOVE_RADIUS_CORNERS)
 )
 
@@ -85,9 +98,11 @@ val PLAYER_NONE = object : Player {
 
     override fun onMoveStart() = fail()
 
-    override fun onBuild(buildable: Buildable) = fail()
+    override fun onBuild(buildableObject: BuildableObject) = fail()
 
     override fun onTownLaid(location: Location) = fail()
+
+    override fun onAttack(moveFromLocation: Location, attackFromLocation: Location, attacker: Unit, defender: Unit, defenderHit: Int, attackerHit: Int) = fail()
 }
 
 /**
@@ -105,6 +120,8 @@ val PLAYER_RED: Player = object : Player by PLAYER_NONE {
  * пустую клетку можно пройти юнитом
  */
 val STATIC_OBJECT_NONE = object : StaticObject {
+    override val info: StaticObjectInfo
+        get() = fail()
     override val icon: Int
         get() = fail()
     override val passable = true
@@ -127,6 +144,8 @@ val STATIC_OBJECT_NONE = object : StaticObject {
  * Все методы не реализованы
  */
 val UNIT_NONE = object : Unit {
+    override val info: UnitInfo
+        get() = fail()
     override val cost: Int
         get() = fail()
     override val description: String
@@ -136,7 +155,7 @@ val UNIT_NONE = object : Unit {
     override var movePoints: Int
         get() = fail()
         set(_) = fail()
-    override val maxMovePoints: Int
+    override val baseMovePoints: Int
         get() = fail()
     override var x: Int
         get() = fail()
@@ -149,6 +168,10 @@ val UNIT_NONE = object : Unit {
         set(_) = fail()
     override val icon: Int
         get() = fail()
+    override val owner: Player
+        get() = fail()
+
+    override fun fight(enemy: Unit) = fail()
 }
 
 /**
@@ -157,3 +180,5 @@ val UNIT_NONE = object : Unit {
  * Применяется, за границами поля [Field]
  */
 val CELL_NONE = CreateCell(STATIC_OBJECT_NONE, x = -10, y = -10)
+
+infix fun Location.equals(other: Location) = x == other.x && y == other.y

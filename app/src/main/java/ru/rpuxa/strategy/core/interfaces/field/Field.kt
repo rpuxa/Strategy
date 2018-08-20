@@ -39,7 +39,7 @@ interface   Field : Iterable<Cell> {
         val maxDepth = unit.movePoints
         val startCell = this[unit]
         val cells = ArrayList<UnitMove>()
-        fun step(cell: Cell, depth: Int = 0) {
+        fun step(cell: Cell, depth: Int, lastCell: Cell?) {
             if ((cell.canStop || cell.unit != UNIT_NONE && cell.unit.owner != unit.owner) &&
                     cell != startCell &&
                     cells.find { it.cell == cell && it.steps <= depth } == null) {
@@ -49,15 +49,15 @@ interface   Field : Iterable<Cell> {
                         break
                     }
                 if (cell.unit == UNIT_NONE || unit is FightingUnit)
-                cells.add(UnitMove(cell, depth))
+                cells.add(UnitMove(cell, depth, lastCell!!))
             }
-            if (depth == maxDepth || cell.unit != UNIT_NONE)
+            if (depth == maxDepth || cell.unit != UNIT_NONE && cell.unit.owner != unit.owner)
                 return
             val neighbours = getNeighbours(cell).filter { it != startCell && it.canPass }
             for (n in neighbours)
-                step(n, depth + 1)
+                step(n, depth + 1, cell)
         }
-        step(startCell)
+        step(startCell,0, null)
 
         return cells
     }
@@ -95,6 +95,8 @@ interface   Field : Iterable<Cell> {
              * Сколько ОП ему нужно потратить для перемещения
              * на эту клетку
              */
-            val steps: Int
+            val steps: Int,
+
+            val lastCell: Cell
     )
 }

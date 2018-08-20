@@ -18,4 +18,8 @@ interface MutableField : Field {
      * Изменить расположение юнита [unit], на [location]
      */
     fun changeLocationUnit(unit: Unit, location: Location)
+
+    fun setUnit(unit: Unit) {
+        this[unit].unit = unit
+    }
 }

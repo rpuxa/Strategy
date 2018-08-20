@@ -36,7 +36,8 @@ interface RegionBuilder {
             val paint = createFromCells(cells)
                     .board(TERRITORY_COLOR_BOARD)
                     .boardWidth(BOARD_TERRITORY_WIDTH)
-                    .effects(BOARD_TERRITORY_EFFECTS)
+                    .boardEffects(BOARD_TERRITORY_EFFECTS)
+                    .fillEffects(TERRITORY_EFFECTS)
                     .fill(color)
             if (color == NO_PLAYER_COLOR_CELL)
                 paint.board(COLOR_NONE)
@@ -49,5 +50,17 @@ interface RegionBuilder {
     /**
      * Создать регион из возможных ходов юнита
      */
-    fun createFromUnitMove(unit: Unit): RegionPaint
+    fun createFromUnitMove(unit: Unit): Array<RegionPaint> {
+        val cells = field.getUnitMoves(unit).map { it.cell }
+        val moves = createFromCells(cells.filter { it.unit == UNIT_NONE })
+                .board(UNIT_REGION_MOVE_BORDER_COLOR)
+                .boardEffects(UNIT_REGION_MOVE_BORDER_EFFECTS)
+                .boardWidth(UNIT_REGION_MOVE_BORDER_WIDTH)
+
+        val attacks = createFromCells(cells.filter { it.unit != UNIT_NONE })
+                .board(UNIT_REGION_ATTACK_BORDER_COLOR)
+                .boardEffects(UNIT_REGION_MOVE_BORDER_EFFECTS)
+                .boardWidth(UNIT_REGION_MOVE_BORDER_WIDTH)
+        return arrayOf(moves, attacks)
+    }
 }

@@ -10,6 +10,7 @@ class StandardRegionPaint(override val list: RegionList) : RegionPaint {
     override var colorFill = COLOR_NONE
     override var colorBorder = COLOR_NONE
     override var lineEffects: Array<BoardEffect>? = null
+    override var fillEffects: Array<BoardEffect>? = null
     override var strokeWidth = 3f
     override var wide = false
 }

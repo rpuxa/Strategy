@@ -1,10 +1,11 @@
 package ru.rpuxa.strategy.core.interfaces.game
 
 import ru.rpuxa.strategy.core.implement.field.statics.player.Town
-import ru.rpuxa.strategy.core.implement.game.players.Human
 import ru.rpuxa.strategy.core.interfaces.field.Location
-import ru.rpuxa.strategy.core.interfaces.field.objects.Buildable
+import ru.rpuxa.strategy.core.interfaces.field.info.BuildableInfo
+import ru.rpuxa.strategy.core.interfaces.field.objects.BuildableObject
 import ru.rpuxa.strategy.core.interfaces.field.objects.units.Unit
+import kotlin.reflect.KClass
 
 
 /**
@@ -55,14 +56,16 @@ interface Server {
     fun endMove(sender: Player)
 
     /**
-     * Команда для постройки [Buildable] в городе [Town]
+     * Команда для постройки [BuildableObject] в городе [Town], на локации [location]
      */
-    fun build(buildable: Buildable, town: Town, sender: Player)
+    fun build(buildableInfo: BuildableInfo, clazz: KClass<out BuildableObject>, location: Location, town: Town, sender: Player)
 
     /**
      * Заложить город на локации [location]
      */
     fun layTown(location: Location, sender: Player)
+
+    fun attack(defender: Unit, attacker: Unit, sender: Player)
 
 
 
@@ -74,7 +77,7 @@ interface Server {
 
         val invalidMove = RuleException("Invalid move!")
 
-        fun enoughMoney(buildable: Buildable, town: Town) =
+        fun enoughMoney(buildable: BuildableInfo, town: Town) =
                 RuleException("Not enough money to build ${buildable.name}, cost ${buildable.cost}, wp ${town.workPoints}")
 
         val secondTimeBuilding =

@@ -1,5 +1,6 @@
 package ru.rpuxa.strategy.core.interfaces.field.objects.units
 
+import ru.rpuxa.strategy.core.interfaces.field.info.units.FightingUnitInfo
 import kotlin.math.min
 import kotlin.reflect.KClass
 
@@ -8,15 +9,19 @@ import kotlin.reflect.KClass
  * и захватывать города
  */
 interface FightingUnit : Unit {
+    override val info: FightingUnitInfo
+
     /**
      * Базовый урон
      */
     val baseDamage: Int
+        get() = info.baseDamage
     /**
      * Юниты, против которых эффективен данный юнит,
      * т.е. получать бонус к урону в бою
      */
     val effectiveAgainst: Array<KClass<out FightingUnit>>
+        get() = info.effectiveAgainst
 
     fun damageAgainst(enemy: Unit): Int {
         var damage = baseDamage

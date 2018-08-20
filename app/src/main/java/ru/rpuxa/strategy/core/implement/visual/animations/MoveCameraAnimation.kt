@@ -6,4 +6,6 @@ import ru.rpuxa.strategy.core.interfaces.visual.Animation
 /**
  * Анимация передвижения камеры
  */
-class MoveCameraAnimation(val location: Location, override val duration: Int) : Animation
+class MoveCameraAnimation(val location: Location, override val duration: Int) : Animation {
+    override val async = false
+}

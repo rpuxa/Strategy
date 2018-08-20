@@ -2,17 +2,18 @@ package ru.rpuxa.strategy.core.implement.game.servers
 
 import ru.rpuxa.strategy.core.implement.field.statics.player.Town
 import ru.rpuxa.strategy.core.implement.field.units.Colonist
+import ru.rpuxa.strategy.core.implement.field.units.Swordsman
 import ru.rpuxa.strategy.core.implement.game.players.Human
 import ru.rpuxa.strategy.core.interfaces.field.Location
 import ru.rpuxa.strategy.core.interfaces.field.MutableField
-import ru.rpuxa.strategy.core.interfaces.field.objects.Buildable
+import ru.rpuxa.strategy.core.interfaces.field.info.BuildableInfo
+import ru.rpuxa.strategy.core.interfaces.field.objects.BuildableObject
 import ru.rpuxa.strategy.core.interfaces.field.objects.statics.StaticObject
 import ru.rpuxa.strategy.core.interfaces.field.objects.units.Unit
 import ru.rpuxa.strategy.core.interfaces.game.Player
 import ru.rpuxa.strategy.core.interfaces.game.Server
-import ru.rpuxa.strategy.core.others.STATIC_OBJECT_NONE
-import ru.rpuxa.strategy.core.others.UNIT_NONE
-import ru.rpuxa.strategy.core.others.copyLocation
+import ru.rpuxa.strategy.core.others.*
+import kotlin.reflect.KClass
 
 /**
  * Реализация Server для оффлайн игр
@@ -35,7 +36,8 @@ class InternalServer(val field: MutableField) : Server {
             throw IllegalStateException("No more 1 human in game!")
         }
 
-        field[2, 2].unit = Colonist(2, 2)
+        field.setUnit(Swordsman(0 loc 0, players[0]))
+        field.setUnit(Swordsman(4 loc 0, PLAYER_RED))
 
         sendAll { it.onStart() }
         players[turn].onMoveStart()
@@ -59,22 +61,25 @@ class InternalServer(val field: MutableField) : Server {
         }
     }
 
-    override fun build(buildable: Buildable, town: Town, sender: Player) {
+    override fun build(buildableInfo: BuildableInfo, clazz: KClass<out BuildableObject>, location: Location, town: Town, sender: Player) {
         if (sender.checkTurn())
             return
         when {
-            town.workPoints < buildable.cost -> sender.onRuleViolate(Server.Rules.enoughMoney(buildable, town))
+            town.workPoints < buildableInfo.cost -> sender.onRuleViolate(Server.Rules.enoughMoney(buildableInfo, town))
             town.bought -> sender.onRuleViolate(Server.Rules.secondTimeBuilding)
             else -> {
-                town.workPoints -= buildable.cost
+                town.workPoints -= buildableInfo.cost
                 town.bought = true
+
+                val constructor = clazz.java.constructors[0]
+
+                val buildable = constructor.newInstance(location, sender) as BuildableObject
 
                 when (buildable) {
                     is Unit -> field[buildable].unit = buildable
                     is StaticObject -> field[buildable].obj = buildable
                     else -> throw IllegalStateException()
                 }
-
 
                 sendAll { it.onBuild(buildable) }
             }
@@ -92,12 +97,40 @@ class InternalServer(val field: MutableField) : Server {
             cell.unit.movePoints == 0 -> sender.onRuleViolate(Server.Rules.enoughMovePoints)
             else -> {
                 cell.unit = UNIT_NONE
-                cell.obj = Town(location.x, location.y, sender)
+                cell.obj = Town(location, sender)
                 field.getTownTerritory(cell.obj as Town).forEach { it.owner = sender }
 
                 sendAll { it.onTownLaid(location) }
             }
         }
+    }
+
+    override fun attack(defender: Unit, attacker: Unit, sender: Player) {
+        if (sender.checkTurn())
+            return
+
+        //TODO провека на атаку
+        val from = attacker.copyLocation()
+        val moves = field.getUnitMoves(attacker)
+        val attackFrom = moves.find { it.cell equals defender }?.lastCell!!
+        field.changeLocationUnit(attacker, attackFrom)
+        val defenderHealth = defender.fight(attacker)
+        val attackerHealth = attacker.fight(defender)
+        val defenderHit = defender.health - defenderHealth
+        val attackerHit = attacker.health - attackerHealth
+        if (defenderHealth > 0)
+            field[defender].unit.health = defenderHealth
+        else
+            field[defender].unit = UNIT_NONE
+
+        if (attackerHealth > 0)
+            field[attacker].unit.health = attackerHealth
+        else
+            field[attacker].unit = UNIT_NONE
+
+        attacker.movePoints = 0
+
+        sendAll { it.onAttack(from, attackFrom, attacker, defender, defenderHit, attackerHit) }
     }
 
     override fun endMove(sender: Player) {
@@ -108,7 +141,7 @@ class InternalServer(val field: MutableField) : Server {
             turn = 0
         field.forEach {
             if (it.unit != UNIT_NONE)
-                it.unit.movePoints = it.unit.maxMovePoints
+                it.unit.movePoints = it.unit.baseMovePoints
             val obj = it.obj
             if (obj is Town) {
                 obj.workPoints += obj.performance

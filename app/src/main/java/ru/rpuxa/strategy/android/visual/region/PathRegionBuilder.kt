@@ -1,10 +1,10 @@
-package ru.rpuxa.strategy.core.implement.visual.region
+package ru.rpuxa.strategy.android.visual.region
 
-import ru.rpuxa.strategy.android.visual.region.PathRegion
 import ru.rpuxa.strategy.core.geometry.Line
+import ru.rpuxa.strategy.core.implement.visual.region.ArrayRegionList
+import ru.rpuxa.strategy.core.implement.visual.region.StandardRegionPaint
 import ru.rpuxa.strategy.core.interfaces.field.Cell
 import ru.rpuxa.strategy.core.interfaces.field.Field
-import ru.rpuxa.strategy.core.interfaces.field.objects.units.Unit
 import ru.rpuxa.strategy.core.interfaces.visual.FieldVisualizer
 import ru.rpuxa.strategy.core.interfaces.visual.region.RegionBuilder
 import ru.rpuxa.strategy.core.interfaces.visual.region.RegionPaint
@@ -17,7 +17,7 @@ import kotlin.math.abs
 import kotlin.math.cos
 import kotlin.math.sin
 
-class StandardRegionBuilder(override val visual: FieldVisualizer, override val field: Field) : RegionBuilder{
+class PathRegionBuilder(override val visual: FieldVisualizer, override val field: Field) : RegionBuilder {
 
     override fun createFromCells(cells: Collection<Cell>): RegionPaint {
         val lines = LinkedList<Line>()
@@ -30,8 +30,9 @@ class StandardRegionBuilder(override val visual: FieldVisualizer, override val f
                 val angle0 = side * Math.PI.toFloat() / 3
                 val angle1 = (side + 1) * Math.PI.toFloat() / 3
 
-                val line = worldCellX + CELL_RADIUS * sin(angle0) pt worldCellY + CELL_RADIUS * cos(angle0) line
-                        (worldCellX + CELL_RADIUS * sin(angle1) pt worldCellY + CELL_RADIUS * cos(angle1))
+                val cellRadius = CELL_RADIUS
+                val line = worldCellX + cellRadius * sin(angle0) pt worldCellY + cellRadius * cos(angle0) line
+                        (worldCellX + cellRadius * sin(angle1) pt worldCellY + cellRadius * cos(angle1))
 
                 lines.add(line)
             }
@@ -58,10 +59,5 @@ class StandardRegionBuilder(override val visual: FieldVisualizer, override val f
         }
 
         return StandardRegionPaint(regions)
-    }
-
-    override fun createFromUnitMove(unit: Unit): RegionPaint {
-        val extract = createFromCells(field.getUnitMoves(unit).map { it.cell }).list
-        return StandardRegionPaint(extract)
     }
 }
