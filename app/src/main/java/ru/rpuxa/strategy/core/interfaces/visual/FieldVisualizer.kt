@@ -6,6 +6,8 @@ import ru.rpuxa.strategy.core.interfaces.field.Field
 import ru.rpuxa.strategy.core.interfaces.field.Location
 import ru.rpuxa.strategy.core.interfaces.field.objects.FieldObject
 import ru.rpuxa.strategy.core.interfaces.field.objects.units.Unit
+import ru.rpuxa.strategy.core.interfaces.game.OnServerCommandsListener
+import ru.rpuxa.strategy.core.interfaces.game.Player
 import ru.rpuxa.strategy.core.interfaces.visual.region.RegionPaint
 
 /**

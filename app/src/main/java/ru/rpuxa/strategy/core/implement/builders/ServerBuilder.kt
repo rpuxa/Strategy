@@ -21,7 +21,7 @@ class ServerBuilder(private var visual: FieldVisualizer, private var board: Muta
      */
     fun alone(): InternalServer {
         val game = InternalServer(board!!)
-        val human = Human(game, game.field, Color.RED, visual)
+        val human = Human(game, game.field, Color.CYAN, visual)
         game.players = arrayOf(human)
         visual.setControllingHuman(human)
         return game

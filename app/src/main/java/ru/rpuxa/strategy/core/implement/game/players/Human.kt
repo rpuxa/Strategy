@@ -1,8 +1,7 @@
 package ru.rpuxa.strategy.core.implement.game.players
 
-import ru.rpuxa.strategy.core.implement.visual.animations.EndAnimations
-import ru.rpuxa.strategy.core.implement.visual.animations.HealthAnimation
-import ru.rpuxa.strategy.core.implement.visual.animations.MoveUnitAnimation
+import ru.rpuxa.strategy.core.implement.field.statics.player.Town
+import ru.rpuxa.strategy.core.implement.visual.animations.*
 import ru.rpuxa.strategy.core.interfaces.field.Field
 import ru.rpuxa.strategy.core.interfaces.field.Location
 import ru.rpuxa.strategy.core.interfaces.field.objects.BuildableObject
@@ -32,17 +31,16 @@ class Human(
         visual.draw(field)
     }
 
-    override fun onMoveStart() {
-
+    override fun onMoveUnit(from: Location, to: Location, sender: Player, fieldAfterMove: Field) {
+        val unit = field[to].unit
+        visual.animator.animate(MoveUnitAnimation(from, to, unit, true, 700, fieldAfterMove))
+        if (moveMode.unit.movePoints == 0)
+            visual.closeInfoHeader(false)
+        else
+            visual.openInfoHeader(unit)
     }
 
-    override fun onMoveUnit(from: Location, to: Location, sender: Player) {
-        visual.animator.animate(MoveUnitAnimation(from, to, field[to].unit, true, 700))
-        if (moveMode.unit.movePoints == 0)
-            visual.closeInfoHeader( false)
-        else
-            visual.openInfoHeader(field[to].unit)
-
+    override fun onMoveStart() {
     }
 
     override fun onRuleViolate(rule: Server.RuleException) {
@@ -57,12 +55,28 @@ class Human(
         visual.draw(field)
     }
 
-    override fun onAttack(moveFromLocation: Location, attackFromLocation: Location, attacker: Unit, defender: Unit, defenderHit: Int, attackerHit: Int) {
-        visual.closeInfoHeader( false)
-        visual.animator.animate(MoveUnitAnimation(moveFromLocation, attackFromLocation, attacker, true, 700))
+    override fun onAttack(moveFromLocation: Location,
+                          attackFromLocation: Location,
+                          attacker: Unit,
+                          defender: Unit,
+                          defenderHit: Int,
+                          attackerHit: Int,
+                          killed: Boolean,
+                          fieldAfterAttack: Field) {
+        visual.closeInfoHeader(false)
+        visual.animator.animate(MoveUnitAnimation(moveFromLocation, attackFromLocation, attacker, false, 700, fieldAfterAttack))
         visual.animator.animate(HealthAnimation(defender, -defenderHit, 3000))
-        visual.animator.animate(HealthAnimation(attacker, -attackerHit, 3000))
-        visual.animator.animate(EndAnimations())
+        visual.animator.animate(HealthAnimation(attackFromLocation, -attackerHit, 3000))
+        if (killed) {
+            visual.animator.animate(RemoveUnitAnimation(defender))
+            visual.animator.animate(WaitAnimation(700))
+            visual.animator.animate(MoveUnitAnimation(attackFromLocation, defender, attacker, true, 700, fieldAfterAttack))
+        } else
+            visual.animator.animate(UpdateAnimation(fieldAfterAttack))
+    }
+
+    override fun onSeizeTown(staticObject: Town, fieldAfterSeize: Field) {
+
     }
 
     val moveMode = MoveMode()

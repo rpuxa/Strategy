@@ -1,5 +1,6 @@
 package ru.rpuxa.strategy.core.interfaces.field.objects.units
 
+import ru.rpuxa.strategy.core.interfaces.field.Location
 import ru.rpuxa.strategy.core.interfaces.field.info.units.UnitInfo
 import ru.rpuxa.strategy.core.interfaces.field.objects.BuildableObject
 import ru.rpuxa.strategy.core.interfaces.game.Player
@@ -41,4 +42,6 @@ interface Unit : BuildableObject {
      * боя с юнитом [enemy]
      */
     fun fight(enemy: Unit): Int
+
+    override fun copy(): Unit
 }

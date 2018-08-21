@@ -11,7 +11,7 @@ interface Cell : Location {
      *
      *  [STATIC_OBJECT_NONE] - для обозначения отсутствия
      */
-    var obj: StaticObject
+    var staticObject: StaticObject
 
     /**
      *  Юнит, который находится на этой клетке
@@ -41,4 +41,9 @@ interface Cell : Location {
      * Может ли юнит остановится в данной клетке
      */
     val canStop: Boolean
+
+    val objects
+        get() = arrayOf(staticObject, unit)
+
+    override fun copy(): Cell
 }

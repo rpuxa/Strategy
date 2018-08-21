@@ -2,6 +2,7 @@ package ru.rpuxa.strategy.core.others
 
 import android.graphics.Color
 import ru.rpuxa.strategy.core.implement.field.CreateCell
+import ru.rpuxa.strategy.core.implement.field.statics.player.Town
 import ru.rpuxa.strategy.core.implement.visual.boardEffects.CornerBoardEffect
 import ru.rpuxa.strategy.core.implement.visual.boardEffects.DashBoardEffect
 import ru.rpuxa.strategy.core.interfaces.field.Field
@@ -92,7 +93,7 @@ val PLAYER_NONE = object : Player {
 
     override fun onRuleViolate(rule: Server.RuleException) = fail()
 
-    override fun onMoveUnit(from: Location, to: Location, sender: Player) = fail()
+    override fun onMoveUnit(from: Location, to: Location, sender: Player, fieldAfterMove: Field) = fail()
 
     override fun onStart() = fail()
 
@@ -102,7 +103,11 @@ val PLAYER_NONE = object : Player {
 
     override fun onTownLaid(location: Location) = fail()
 
-    override fun onAttack(moveFromLocation: Location, attackFromLocation: Location, attacker: Unit, defender: Unit, defenderHit: Int, attackerHit: Int) = fail()
+    override fun onAttack(moveFromLocation: Location, attackFromLocation: Location,
+                          attacker: Unit, defender: Unit, defenderHit: Int,
+                          attackerHit: Int, killed: Boolean, fieldAfterAttack: Field) = fail()
+
+    override fun onSeizeTown(staticObject: Town, fieldAfterSeize: Field) = fail()
 }
 
 /**
@@ -110,6 +115,7 @@ val PLAYER_NONE = object : Player {
  */
 val PLAYER_RED: Player = object : Player by PLAYER_NONE {
     override val color = Color.RED
+    override val townsCount = 1
 }
 
 
@@ -135,6 +141,8 @@ val STATIC_OBJECT_NONE = object : StaticObject {
     override var y: Int
         get() = fail()
         set(_) = fail()
+
+    override fun copy() = fail()
 }
 
 
@@ -172,6 +180,8 @@ val UNIT_NONE = object : Unit {
         get() = fail()
 
     override fun fight(enemy: Unit) = fail()
+
+    override fun copy() = fail()
 }
 
 /**

@@ -3,6 +3,7 @@ package ru.rpuxa.strategy.core.interfaces.field
 import ru.rpuxa.strategy.core.implement.field.statics.player.Town
 import ru.rpuxa.strategy.core.interfaces.field.objects.units.FightingUnit
 import ru.rpuxa.strategy.core.interfaces.field.objects.units.Unit
+import ru.rpuxa.strategy.core.others.Copyable
 import ru.rpuxa.strategy.core.others.UNIT_NONE
 
 /**
@@ -11,12 +12,13 @@ import ru.rpuxa.strategy.core.others.UNIT_NONE
  *  Может быть проитерирован.
  *  Не имеет методов для изменения @see [MutableField]
  */
-interface   Field : Iterable<Cell> {
+interface Field : Iterable<Cell>, Copyable<Field> {
     /**
      * Итератор из интерфейса Iterable
      * Для удобства переделан в свойство
      */
     val iterator: Iterator<Cell>
+
     override fun iterator() = iterator
 
     /**
@@ -24,12 +26,14 @@ interface   Field : Iterable<Cell> {
      *  Для удобства является оператором
      */
     operator fun get(x: Int, y: Int): Cell
+
     operator fun get(location: Location) = get(location.x, location.y)
 
     /**
      * Получить соседей клетки, расположенной по координатам или локации
      */
     fun getNeighbours(x: Int, y: Int): Array<Cell>
+
     fun getNeighbours(location: Location) = getNeighbours(location.x, location.y)
 
     /**
@@ -49,7 +53,7 @@ interface   Field : Iterable<Cell> {
                         break
                     }
                 if (cell.unit == UNIT_NONE || unit is FightingUnit)
-                cells.add(UnitMove(cell, depth, lastCell!!))
+                    cells.add(UnitMove(cell, depth, lastCell!!))
             }
             if (depth == maxDepth || cell.unit != UNIT_NONE && cell.unit.owner != unit.owner)
                 return
@@ -57,7 +61,7 @@ interface   Field : Iterable<Cell> {
             for (n in neighbours)
                 step(n, depth + 1, cell)
         }
-        step(startCell,0, null)
+        step(startCell, 0, null)
 
         return cells
     }

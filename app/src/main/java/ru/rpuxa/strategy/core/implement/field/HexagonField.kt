@@ -1,10 +1,12 @@
 package ru.rpuxa.strategy.core.implement.field
 
 import ru.rpuxa.strategy.core.interfaces.field.Cell
+import ru.rpuxa.strategy.core.interfaces.field.Field
 import ru.rpuxa.strategy.core.interfaces.field.Location
 import ru.rpuxa.strategy.core.interfaces.field.MutableField
 import ru.rpuxa.strategy.core.interfaces.field.objects.units.Unit
 import ru.rpuxa.strategy.core.others.CELL_NONE
+import ru.rpuxa.strategy.core.others.Copyable
 import ru.rpuxa.strategy.core.others.UNIT_NONE
 
 
@@ -76,5 +78,12 @@ class HexagonField(private val field: Array<Array<Cell>>) : MutableField {
         this[unit].unit = unit
     }
 
+    override fun copy(): HexagonField = HexagonField(
+            Array(field.size) {x ->
+                Array(field[0].size) { y ->
+                    field[x][y].copy()
+                }
+            }
+    )
 }
 

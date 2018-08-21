@@ -1,5 +1,6 @@
 package ru.rpuxa.strategy.core.interfaces.field.objects.statics
 
+import ru.rpuxa.strategy.core.interfaces.field.Location
 import ru.rpuxa.strategy.core.interfaces.field.info.FieldObjectInfo
 import ru.rpuxa.strategy.core.interfaces.field.info.statics.StaticObjectInfo
 import ru.rpuxa.strategy.core.interfaces.field.objects.FieldObject
@@ -19,4 +20,6 @@ interface StaticObject : FieldObject {
      */
     val passable: Boolean
         get() = info.passable
+
+    override fun copy(): StaticObject
 }

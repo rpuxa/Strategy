@@ -36,8 +36,11 @@ class InternalServer(val field: MutableField) : Server {
             throw IllegalStateException("No more 1 human in game!")
         }
 
+        field[4, 0].staticObject = Town(4 loc 0, PLAYER_RED)
         field.setUnit(Swordsman(0 loc 0, players[0]))
-        field.setUnit(Swordsman(4 loc 0, PLAYER_RED))
+        val unit = Swordsman(4 loc 0, PLAYER_RED)
+        unit.health = 40
+        field.setUnit(unit)
 
         sendAll { it.onStart() }
         players[turn].onMoveStart()
@@ -56,8 +59,20 @@ class InternalServer(val field: MutableField) : Server {
                 unit.movePoints -= move.steps
                 val from = unit.copyLocation()
                 field.changeLocationUnit(unit, toLocation)
-                sendAll { it.onMoveUnit(from, toLocation, sender) }
+                val fieldAfterMove = field.copy()
+                sendAll { it.onMoveUnit(from, toLocation, sender, fieldAfterMove) }
+                isUnitSeizedTown(unit)
             }
+        }
+    }
+
+    private fun isUnitSeizedTown(unit: Unit) {
+        val staticObject = field[unit].staticObject
+        if (staticObject is Town && staticObject.owner != staticObject.owner) {
+            staticObject.owner = unit.owner
+            field.getTownTerritory(staticObject).forEach { it.owner = unit.owner }
+            val fieldAfterSeize = field.copy()
+            sendAll { it.onSeizeTown(staticObject, fieldAfterSeize) }
         }
     }
 
@@ -77,7 +92,7 @@ class InternalServer(val field: MutableField) : Server {
 
                 when (buildable) {
                     is Unit -> field[buildable].unit = buildable
-                    is StaticObject -> field[buildable].obj = buildable
+                    is StaticObject -> field[buildable].staticObject = buildable
                     else -> throw IllegalStateException()
                 }
 
@@ -93,12 +108,12 @@ class InternalServer(val field: MutableField) : Server {
         val cell = field[location]
         when {
             cell.unit !is Colonist -> sender.onRuleViolate(Server.Rules.noColonistLayTown)
-            cell.obj != STATIC_OBJECT_NONE -> sender.onRuleViolate(Server.Rules.layTownNoEmptyCell)
+            cell.staticObject != STATIC_OBJECT_NONE -> sender.onRuleViolate(Server.Rules.layTownNoEmptyCell)
             cell.unit.movePoints == 0 -> sender.onRuleViolate(Server.Rules.enoughMovePoints)
             else -> {
                 cell.unit = UNIT_NONE
-                cell.obj = Town(location, sender)
-                field.getTownTerritory(cell.obj as Town).forEach { it.owner = sender }
+                cell.staticObject = Town(location, sender)
+                field.getTownTerritory(cell.staticObject as Town).forEach { it.owner = sender }
 
                 sendAll { it.onTownLaid(location) }
             }
@@ -123,14 +138,23 @@ class InternalServer(val field: MutableField) : Server {
         else
             field[defender].unit = UNIT_NONE
 
-        if (attackerHealth > 0)
+        var killed = false
+        if (attackerHealth > 0) {
             field[attacker].unit.health = attackerHealth
+            if (defenderHealth <= 0){
+                field.changeLocationUnit(attacker, defender)
+                killed = true
+            }
+        }
         else
             field[attacker].unit = UNIT_NONE
 
         attacker.movePoints = 0
+        val fieldAfterAttack = field.copy()
 
-        sendAll { it.onAttack(from, attackFrom, attacker, defender, defenderHit, attackerHit) }
+
+        sendAll { it.onAttack(from, attackFrom, attacker, defender, defenderHit, attackerHit, killed, fieldAfterAttack) }
+        isUnitSeizedTown(attacker)
     }
 
     override fun endMove(sender: Player) {
@@ -142,7 +166,7 @@ class InternalServer(val field: MutableField) : Server {
         field.forEach {
             if (it.unit != UNIT_NONE)
                 it.unit.movePoints = it.unit.baseMovePoints
-            val obj = it.obj
+            val obj = it.staticObject
             if (obj is Town) {
                 obj.workPoints += obj.performance
                 obj.addDay()

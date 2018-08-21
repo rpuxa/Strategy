@@ -24,12 +24,14 @@ interface FightingUnit : Unit {
         get() = info.effectiveAgainst
 
     fun damageAgainst(enemy: Unit): Int {
-        var damage = baseDamage
-        damage *= 1 + (health - enemy.health) / 100
+        var damage = baseDamage.toFloat()
+        damage *= 1 + (health * baseHealth - enemy.health * enemy.baseHealth).toFloat() / (baseHealth * enemy.baseHealth)
         if (enemy::class in effectiveAgainst)
             damage *= 2
 
-        return damage
+        if (damage < 5)
+            damage = 5f
+        return damage.toInt()
     }
 
     override fun fight(enemy: Unit): Int {

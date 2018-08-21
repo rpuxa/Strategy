@@ -4,11 +4,13 @@ import ru.rpuxa.strategy.core.implement.field.info.statics.player.TownInfo
 import ru.rpuxa.strategy.core.implement.visual.TexturesId
 import ru.rpuxa.strategy.core.interfaces.field.Location
 import ru.rpuxa.strategy.core.interfaces.field.info.statics.PlayerBuildingInfo
+import ru.rpuxa.strategy.core.interfaces.field.objects.FieldObject
 import ru.rpuxa.strategy.core.interfaces.field.objects.statics.PlayerBuilding
 import ru.rpuxa.strategy.core.interfaces.game.Player
 import ru.rpuxa.strategy.core.others.INITIAL_PERFORMANCE
 import ru.rpuxa.strategy.core.others.TOWN_COUNT_PERFORMANCE_FACTOR
 import ru.rpuxa.strategy.core.others.TOWN_LEVEL_PERFORMANCE_FACTOR
+import ru.rpuxa.strategy.core.others.copyLocation
 
 /**
  * Класс города. Предназначен для постройки новых объектов [Buildable]
@@ -22,6 +24,7 @@ class Town(location: Location, override var owner: Player) : PlayerBuilding {
     override var x = location.x
     override var y = location.y
 
+    override fun copy(): Town = Town(this.copyLocation(), owner)
 
     /**
      * Текущее значение очков работы
@@ -74,6 +77,13 @@ class Town(location: Location, override var owner: Player) : PlayerBuilding {
             level++
         }
     }
+
+    override fun equals(other: Any?) = when {
+            other === this -> true
+            other !is FieldObject -> false
+            else -> id == other.id
+        }
+
 }
 
 

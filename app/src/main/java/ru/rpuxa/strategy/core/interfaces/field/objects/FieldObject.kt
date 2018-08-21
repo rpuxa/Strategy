@@ -16,6 +16,7 @@ interface FieldObject : Location {
      * id вместо самой иконки выбрано по причине лучшей производительности.
      * Саму иконку по id, можно получить в хранилище текстур
      */
+
     val icon: Int
         get() = info.icon
 
@@ -30,4 +31,5 @@ interface FieldObject : Location {
      */
     val description: String
         get() = info.description
+
 }

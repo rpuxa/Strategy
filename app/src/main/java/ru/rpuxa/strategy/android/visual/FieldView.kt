@@ -13,24 +13,23 @@ import kotlinx.android.synthetic.main.town_info.view.*
 import kotlinx.android.synthetic.main.unit_info.view.*
 import ru.rpuxa.strategy.R
 import ru.rpuxa.strategy.android.others.composeEffects
+import ru.rpuxa.strategy.core.implement.visual.animations.UpdateAnimation
 import ru.rpuxa.strategy.android.visual.region.PathRegion
+import ru.rpuxa.strategy.android.visual.region.PathRegionBuilder
 import ru.rpuxa.strategy.core.geometry.Point
 import ru.rpuxa.strategy.core.implement.field.HexagonField
 import ru.rpuxa.strategy.core.implement.field.statics.player.Town
 import ru.rpuxa.strategy.core.implement.field.units.Colonist
 import ru.rpuxa.strategy.core.implement.game.players.Human
 import ru.rpuxa.strategy.core.implement.visual.TexturesId
-import ru.rpuxa.strategy.core.implement.visual.animations.MoveCameraAnimation
-import ru.rpuxa.strategy.core.implement.visual.animations.MoveUnitAnimation
+import ru.rpuxa.strategy.core.implement.visual.animations.*
 import ru.rpuxa.strategy.core.implement.visual.boardEffects.CornerBoardEffect
 import ru.rpuxa.strategy.core.implement.visual.boardEffects.DashBoardEffect
-import ru.rpuxa.strategy.android.visual.region.PathRegionBuilder
-import ru.rpuxa.strategy.core.implement.visual.animations.HealthAnimation
-import ru.rpuxa.strategy.core.implement.visual.animations.EndAnimations
 import ru.rpuxa.strategy.core.interfaces.field.Cell
 import ru.rpuxa.strategy.core.interfaces.field.Field
 import ru.rpuxa.strategy.core.interfaces.field.Location
 import ru.rpuxa.strategy.core.interfaces.field.objects.FieldObject
+import ru.rpuxa.strategy.core.interfaces.field.objects.statics.StaticObject
 import ru.rpuxa.strategy.core.interfaces.field.objects.units.FightingUnit
 import ru.rpuxa.strategy.core.interfaces.field.objects.units.PeacefulUnit
 import ru.rpuxa.strategy.core.interfaces.field.objects.units.Unit
@@ -42,8 +41,8 @@ import ru.rpuxa.strategy.core.interfaces.visual.region.RegionBuilder
 import ru.rpuxa.strategy.core.interfaces.visual.region.RegionPaint
 import ru.rpuxa.strategy.core.others.*
 import java.util.*
-import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.collections.ArrayList
+import kotlin.collections.HashMap
 
 /**
  * Реализация [FieldVisualizer] для android устройств
@@ -56,12 +55,13 @@ class FieldView(context: Context, attrs: AttributeSet) : View(context, attrs), F
 
     private val paint = Paint()
     private val camera = Camera()
-    private var rebuild = true
+    private var rebuildTerritories = true
     private val textures = TextureBank(resources)
+    private val icons = IconsBank(textures)
     private lateinit var regionBuilder: RegionBuilder
     private lateinit var territories: Array<RegionPaint>
     private val selections = ArrayList<RegionPaint>()
-    private val unitsLocation = UnitsLocationMap()
+    private val fieldObjectsLocation = FieldObjectsLocation()
     private lateinit var human: Human
     private val activity = context as Activity
     private val headerController = HeaderInfoController()
@@ -82,7 +82,7 @@ class FieldView(context: Context, attrs: AttributeSet) : View(context, attrs), F
 
     override fun onDraw(canvas: Canvas?) {
         canvas!!
-        textures.updateSize(camera.width.toInt(), camera.height.toInt())
+        //textures.updateSize(camera.width.toInt(), camera.height.toInt())
         val scale = camera.width / canvas.width
         canvas.translate(canvas.width / 2f - camera.x / scale, canvas.height / 2f - camera.y / scale)
         canvas.scale(1 / scale, 1 / scale)
@@ -94,7 +94,7 @@ class FieldView(context: Context, attrs: AttributeSet) : View(context, attrs), F
 
         canvas.drawPaint(paint)
 
-        if (rebuild) {
+        if (rebuildTerritories) {
             territories = regionBuilder.createFromTerritories()
         }
 
@@ -103,33 +103,37 @@ class FieldView(context: Context, attrs: AttributeSet) : View(context, attrs), F
         territories.forEach { it.paintBorder(canvas, paint) }
         selections.forEach { it.paintBorder(canvas, paint) }
 
-        rebuild = false
+        rebuildTerritories = false
 
-        for (cell in regionBuilder.field) {
-            val (worldX, worldY) = locationToWorld(cell)
-            if (cell.obj != STATIC_OBJECT_NONE)
-                canvas.drawBitmap(cell.obj.icon, worldX + UNIT_TEXTURE_X, worldY + UNIT_TEXTURE_Y, UNIT_TEXTURE_HEIGHT)
-        }
-        for ((unit, shift) in unitsLocation) {
-            if (unit != UNIT_NONE) {
-                val (unitX, unitY) = unitsLocation[unit]!!.toPoint()
+        for ((obj, shift) in HashMap(fieldObjectsLocation)) {
+            if (obj.isNone)
+                continue
+            if (obj is StaticObject) {
+                //draw static objects
+                val (objectX, objectY) = locationToWorld(obj)
+                canvas.drawBitmap(obj.icon, objectX + UNIT_TEXTURE_X, objectY + UNIT_TEXTURE_Y, UNIT_TEXTURE_HEIGHT)
+            }
+
+            if (obj is Unit) {
+                val (unitX, unitY) = fieldObjectsLocation[obj]!!.toPoint()
                 //draw icon unit
-                canvas.drawBitmap(unit.icon, unitX + UNIT_ICON_X, unitY + UNIT_ICON_Y, 2 * UNIT_ICON_RADIUS, 2 * UNIT_ICON_RADIUS)
+                canvas.drawBitmap(icons[obj.icon, obj.owner.color, UNIT_ICON_RADIUS.toInt()], unitX + UNIT_ICON_X, unitY + UNIT_ICON_Y)
                 //draw heath bar
                 val leftHealthBar = unitX + UNIT_ICON_X + UNIT_ICON_RADIUS + DISTANCE_FROM_UNIT_ICON_TO_HEALTH_BAR
-                val topHealthBar = unitY + UNIT_ICON_Y - HEALTH_BAR_HEIGHT / 2 + HEALTH_BAR_HEIGHT * (1 - unit.health.toFloat() / unit.baseHealth)
+                val topHealthBar = unitY + UNIT_ICON_Y - HEALTH_BAR_HEIGHT / 2 + HEALTH_BAR_HEIGHT * (1 - obj.health.toFloat() / obj.baseHealth)
                 val rightHealthBar = leftHealthBar + HEALTH_BAR_WIDTH
                 val bottomHealthBar = unitY + UNIT_ICON_Y + HEALTH_BAR_HEIGHT / 2
-                paint.color = getHeathBarColor(unit)
+                paint.color = getHeathBarColor(obj)
                 paint.pathEffect = null
                 paint.style = Paint.Style.FILL
                 paint.strokeWidth = 0f
                 canvas.drawRect(leftHealthBar, topHealthBar, rightHealthBar, bottomHealthBar, paint)
-                if (field!![unit].obj == STATIC_OBJECT_NONE || shift.offers.x != 0f || shift.offers.y != 0f) {
-                    val index = if (unit is FightingUnit) TexturesId.UNIT else TexturesId.PEACEFUL_UNIT
-                    //draw unit
+                //draw unit
+                if (field!![obj].staticObject == STATIC_OBJECT_NONE || shift.offers.x != 0f || shift.offers.y != 0f) {
+                    val index = if (obj is FightingUnit) TexturesId.UNIT else TexturesId.PEACEFUL_UNIT
                     canvas.drawBitmap(index, unitX + UNIT_TEXTURE_X, unitY + UNIT_TEXTURE_Y, UNIT_TEXTURE_HEIGHT)
                 }
+
             }
         }
 
@@ -140,11 +144,11 @@ class FieldView(context: Context, attrs: AttributeSet) : View(context, attrs), F
         if (field !is HexagonField)
             throw IllegalStateException("FieldView cannot view not HexagonFields")
         val nullField = this.field == null
-        this.field = field
+        this.field = field.copy()
         if (nullField)
-            unitsLocation.updateLocations()
-        regionBuilder = PathRegionBuilder(this, field)
-        rebuild = true
+            fieldObjectsLocation.updateLocations(this.field as HexagonField)
+        regionBuilder = PathRegionBuilder(this, this.field as HexagonField)
+        rebuildTerritories = true
         invalidate()
     }
 
@@ -254,6 +258,10 @@ class FieldView(context: Context, attrs: AttributeSet) : View(context, attrs), F
         drawBitmap(bitmap, centerX - bitmap.width / 2, centerY - height / 2, paint)
     }
 
+    private fun Canvas.drawBitmap(bitmap: Bitmap, centerX: Float, centerY: Float) {
+        drawBitmap(bitmap, centerX - bitmap.width / 2, centerY - bitmap.height / 2, paint)
+    }
+
     inner class Animator : FieldAnimator {
 
         override fun animate(animation: Animation) {
@@ -304,9 +312,23 @@ class FieldView(context: Context, attrs: AttributeSet) : View(context, attrs), F
                 is MoveUnitAnimation -> moveUnit(animation)
                 is MoveCameraAnimation -> moveCameraToLocation(animation)
                 is HealthAnimation -> health(animation)
-                is EndAnimations -> unitsLocation.updateLocations()
+                is WaitAnimation -> Thread.sleep(animation.duration.toLong())
+                is UpdateAnimation -> update(animation)
+                is RemoveUnitAnimation -> removeUnit(animation)
+                is SeizeTownAnimation -> seizeTown(animation)
                 else -> throw UnsupportedOperationException("Animation ${animation.javaClass.name} not supported")
             }
+        }
+
+        private fun seizeTown(animation: SeizeTownAnimation) {
+            fieldObjectsLocation.updateLocations(animation.field)
+            rebuildTerritories = true
+            invalidate()
+        }
+
+        private fun removeUnit(animation: RemoveUnitAnimation) {
+            fieldObjectsLocation.remove(animation.unit)
+            invalidate()
         }
 
         private fun moveUnit(animation: MoveUnitAnimation) {
@@ -315,11 +337,13 @@ class FieldView(context: Context, attrs: AttributeSet) : View(context, attrs), F
             val deltaX = worldLocationX - worldUnitX
             val deltaY = worldLocationY - worldUnitY
             valueAnimate(animation) {
-                unitsLocation[animation.unit]!!.offers = deltaX * it pt deltaY * it
+                fieldObjectsLocation[animation.unit]!!.offers = deltaX * it pt deltaY * it
                 invalidate()
             }
             if (animation.updateAfterAnimation)
-                unitsLocation.updateLocations()
+                fieldObjectsLocation.updateLocations(animation.field)
+            else
+                fieldObjectsLocation.zeroShifts()
             invalidate()
         }
 
@@ -344,6 +368,12 @@ class FieldView(context: Context, attrs: AttributeSet) : View(context, attrs), F
                 invalidate()
             }
             healthList.remove(healthDrawerText)
+        }
+
+        private fun update(updateAnimation: UpdateAnimation) {
+            fieldObjectsLocation.updateLocations(updateAnimation.field)
+            rebuildTerritories = true
+            invalidate()
         }
 
         private inline fun valueAnimate(animation: Animation, block: (Float) -> kotlin.Unit) = valueAnimate(animation.duration, block)
@@ -380,26 +410,36 @@ class FieldView(context: Context, attrs: AttributeSet) : View(context, attrs), F
 //                (x - (this.x + width / 2)) * this@FieldView.width / width to (y - (this.y + height / 2)) * this@FieldView.height / height
     }
 
-    private inner class UnitsLocationMap : HashMap<Unit, UnitsLocationMap.Shift>() {
+    private inner class FieldObjectsLocation : HashMap<FieldObject, FieldObjectsLocation.Shift>() {
 
-        fun updateLocations() {
-            for (cell in field!!)
-                if (cell.unit != UNIT_NONE) {
-                    val locationToWorld = locationToWorld(cell.unit)
+        fun updateLocations(field: Field) {
+            for (cell in field)
+                for (obj in cell.objects)
+                if (obj.isNotNone) {
+                    val locationToWorld = locationToWorld(obj)
                     val value = locationToWorld.toShift()
-                    put(cell.unit, value)
+                    put(obj, value)
                 }
-            TODO("Исправить баг с неисчезновением юнита после убийства")
-            for ((unit, _) in toList())
-                if (unit.health <= 0)
-                    remove(unit)
+            for ((obj, _) in toList())
+                if (field.find { it.unit == obj || it.staticObject == obj } == null)
+                    remove(obj)
         }
 
-        inner class Shift(val start: Point, var offers: Point) {
-            fun toPoint() = start.x + offers.x to start.y + offers.y
+        inner class Shift(var start: Point, var offers: Point) {
+            fun toPoint() = start.x + offers.x pt start.y + offers.y
+
+            fun zeroOffers() {
+                start = toPoint()
+                offers = 0f pt 0f
+            }
         }
 
         fun Point.toShift() = Shift(this, 0f pt 0f)
+
+        fun zeroShifts() {
+            for (shift in values)
+                shift.zeroOffers()
+        }
     }
 
     private inner class Controller : OnTouchListener {
@@ -411,7 +451,7 @@ class FieldView(context: Context, attrs: AttributeSet) : View(context, attrs), F
 
         private fun onTouch(event: MotionEvent) {
             fun Cell.click(chosenObj: Boolean) {
-                if (human.moveMode.running)
+                if (human.moveMode.running) {
                     when {
                         this in human.moveMode.selections[0] -> //Обычное передвижение
                             human.executor.moveUnit(human.moveMode.unit, this, human)
@@ -431,18 +471,21 @@ class FieldView(context: Context, attrs: AttributeSet) : View(context, attrs), F
                         }
                     }
 
+                    return
+                }
 
-                if (this == CELL_NONE || unit == UNIT_NONE && obj == STATIC_OBJECT_NONE) {
+
+                if (this == CELL_NONE || unit == UNIT_NONE && staticObject == STATIC_OBJECT_NONE) {
                     closeInfoHeader(true)
                     return
                 }
 
-                openInfoHeader(if (chosenObj && obj != STATIC_OBJECT_NONE) obj else unit)
+                openInfoHeader(if (chosenObj && staticObject != STATIC_OBJECT_NONE) staticObject else unit)
             }
 
             fun click(x: Float, y: Float) {
                 val (worldX, worldY) = projectToWorld(x, y)
-                var chosenUnit = false
+                var chosenUnit = human.moveMode.running
                 val findCell = field!!.find {
                     val (cellWorldX, cellWorldY) = locationToWorld(it)
                     chosenUnit = dist(
@@ -462,6 +505,7 @@ class FieldView(context: Context, attrs: AttributeSet) : View(context, attrs), F
                 MotionEvent.ACTION_DOWN -> {
                     lastTouch0 = arrayOf(event.x, event.y)
                     firstTouch = arrayOf(event.x, event.y)
+                    lastDist = null
                 }
 
                 MotionEvent.ACTION_MOVE -> when (event.pointerCount) {
