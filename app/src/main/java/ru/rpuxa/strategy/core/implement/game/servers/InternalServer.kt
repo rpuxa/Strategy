@@ -61,18 +61,21 @@ class InternalServer(val field: MutableField) : Server {
                 field.changeLocationUnit(unit, toLocation)
                 val fieldAfterMove = field.copy()
                 sendAll { it.onMoveUnit(from, toLocation, sender, fieldAfterMove) }
-                isUnitSeizedTown(unit)
+                unitEnterTown(unit)
             }
         }
     }
 
-    private fun isUnitSeizedTown(unit: Unit) {
-        val staticObject = field[unit].staticObject
-        if (staticObject is Town && staticObject.owner != staticObject.owner) {
-            staticObject.owner = unit.owner
-            field.getTownTerritory(staticObject).forEach { it.owner = unit.owner }
+    private fun unitEnterTown(unit: Unit) {
+        val town = field[unit].staticObject as? Town ?: return
+        if (town.owner != town.owner) {
+            town.movesToDestroy = 2
             val fieldAfterSeize = field.copy()
-            sendAll { it.onSeizeTown(staticObject, fieldAfterSeize) }
+            sendAll { it.onSeizeTown(town, fieldAfterSeize) }
+        } else {
+            town.movesToDestroy = -1
+            val fieldAfterSeize = field.copy()
+            sendAll { it.onStifleRebellion(town, fieldAfterSeize) }
         }
     }
 
@@ -154,7 +157,7 @@ class InternalServer(val field: MutableField) : Server {
 
 
         sendAll { it.onAttack(from, attackFrom, attacker, defender, defenderHit, attackerHit, killed, fieldAfterAttack) }
-        isUnitSeizedTown(attacker)
+        unitEnterTown(attacker)
     }
 
     override fun endMove(sender: Player) {

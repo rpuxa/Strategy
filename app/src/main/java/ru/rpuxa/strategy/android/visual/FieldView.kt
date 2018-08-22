@@ -13,7 +13,6 @@ import kotlinx.android.synthetic.main.town_info.view.*
 import kotlinx.android.synthetic.main.unit_info.view.*
 import ru.rpuxa.strategy.R
 import ru.rpuxa.strategy.android.others.composeEffects
-import ru.rpuxa.strategy.core.implement.visual.animations.UpdateAnimation
 import ru.rpuxa.strategy.android.visual.region.PathRegion
 import ru.rpuxa.strategy.android.visual.region.PathRegionBuilder
 import ru.rpuxa.strategy.core.geometry.Point
@@ -413,6 +412,8 @@ class FieldView(context: Context, attrs: AttributeSet) : View(context, attrs), F
     private inner class FieldObjectsLocation : HashMap<FieldObject, FieldObjectsLocation.Shift>() {
 
         fun updateLocations(field: Field) {
+            this@FieldView.field = field
+            clear()
             for (cell in field)
                 for (obj in cell.objects)
                 if (obj.isNotNone) {
@@ -420,9 +421,9 @@ class FieldView(context: Context, attrs: AttributeSet) : View(context, attrs), F
                     val value = locationToWorld.toShift()
                     put(obj, value)
                 }
-            for ((obj, _) in toList())
-                if (field.find { it.unit == obj || it.staticObject == obj } == null)
-                    remove(obj)
+            /* for ((obj, _) in toList())
+                 if (field.find { it.unit == obj || it.staticObject == obj } == null)
+                     remove(obj)*/
         }
 
         inner class Shift(var start: Point, var offers: Point) {

@@ -10,7 +10,15 @@ import ru.rpuxa.strategy.core.others.copyLocation
 /**
  * Поселенец. Закладывает новые города
  */
-class Colonist(location: Location, override val owner: Player) : PeacefulUnit {
+class Colonist(location: Location, override val owner: Player) : PeacefulUnit() {
+
+    constructor(location: Location, owner: Player, id: Long, health: Int, movePoints: Int) : this(location, owner) {
+        super.id = id
+        this.health = health
+        this.movePoints = movePoints
+    }
+
+
     override val info: UnitInfo
         get() = ColonistInfo
     override var x = location.x
@@ -18,6 +26,6 @@ class Colonist(location: Location, override val owner: Player) : PeacefulUnit {
     override var movePoints = baseMovePoints
     override var health = baseHealth
 
-    override fun copy(): Colonist = Colonist(this.copyLocation(), owner)
+    override fun copy(): Colonist = Colonist(this.copyLocation(), owner, id, health, movePoints)
 
 }

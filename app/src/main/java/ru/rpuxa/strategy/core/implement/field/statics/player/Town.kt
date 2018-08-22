@@ -1,10 +1,7 @@
 package ru.rpuxa.strategy.core.implement.field.statics.player
 
 import ru.rpuxa.strategy.core.implement.field.info.statics.player.TownInfo
-import ru.rpuxa.strategy.core.implement.visual.TexturesId
 import ru.rpuxa.strategy.core.interfaces.field.Location
-import ru.rpuxa.strategy.core.interfaces.field.info.statics.PlayerBuildingInfo
-import ru.rpuxa.strategy.core.interfaces.field.objects.FieldObject
 import ru.rpuxa.strategy.core.interfaces.field.objects.statics.PlayerBuilding
 import ru.rpuxa.strategy.core.interfaces.game.Player
 import ru.rpuxa.strategy.core.others.INITIAL_PERFORMANCE
@@ -15,21 +12,42 @@ import ru.rpuxa.strategy.core.others.copyLocation
 /**
  * Класс города. Предназначен для постройки новых объектов [Buildable]
  */
-class Town(location: Location, override var owner: Player) : PlayerBuilding {
+class Town : PlayerBuilding {
+
+    constructor(location: Location, owner: Player) : super() {
+        this.owner = owner
+        x = location.x
+        y = location.y
+        workPoints = 0
+        bought = false
+        level = 1
+        movesToDestroy = -1
+    }
+
+    constructor(location: Location, owner: Player, id: Long, workPoints: Int,
+                bought: Boolean, level: Int, movesToDestroy: Int) : this(location, owner) {
+        super.id = id
+        this.workPoints = workPoints
+        this.bought = bought
+        this.level = level
+        this.movesToDestroy = movesToDestroy
+    }
+
 
     override val info
         get() = TownInfo
 
+    override var owner: Player
 
-    override var x = location.x
-    override var y = location.y
+    override var x: Int
+    override var y: Int
 
-    override fun copy(): Town = Town(this.copyLocation(), owner)
+    override fun copy(): Town = Town(this.copyLocation(), owner, id, workPoints, bought, level, movesToDestroy)
 
     /**
      * Текущее значение очков работы
      */
-    var workPoints = 0
+    var workPoints: Int
 
     val maxWorkPoints: Int
         get() = info.maxWorkPoints
@@ -44,15 +62,17 @@ class Town(location: Location, override var owner: Player) : PlayerBuilding {
      *
      * Город не может строить несколько [Buildable] за один ход
      */
-    var bought = false
+    var bought: Boolean
 
     /**
      * Уровень города. Влияет на его производительность [performance]
      */
-    var level = 1
+    var level: Int
         private set(value) {
             field = value
         }
+
+    var movesToDestroy: Int
 
     /**
      * Производительность показывает, сколько очков работы прибавляется каждый ход
@@ -77,13 +97,6 @@ class Town(location: Location, override var owner: Player) : PlayerBuilding {
             level++
         }
     }
-
-    override fun equals(other: Any?) = when {
-            other === this -> true
-            other !is FieldObject -> false
-            else -> id == other.id
-        }
-
 }
 
 

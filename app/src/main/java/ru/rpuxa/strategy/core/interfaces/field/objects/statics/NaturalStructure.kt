@@ -7,4 +7,4 @@ package ru.rpuxa.strategy.core.interfaces.field.objects.statics
  *
  * К примеру горы
  */
-interface NaturalStructure : StaticObject
+abstract class NaturalStructure : StaticObject()

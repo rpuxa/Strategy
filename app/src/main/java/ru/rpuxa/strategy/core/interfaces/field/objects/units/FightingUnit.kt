@@ -8,8 +8,8 @@ import kotlin.reflect.KClass
  * Боевая единица, которая может атаковать другие юниты
  * и захватывать города
  */
-interface FightingUnit : Unit {
-    override val info: FightingUnitInfo
+abstract class FightingUnit : Unit() {
+    abstract override val info: FightingUnitInfo
 
     /**
      * Базовый урон

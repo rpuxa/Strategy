@@ -15,6 +15,7 @@ import ru.rpuxa.strategy.core.interfaces.field.objects.units.Unit
 import ru.rpuxa.strategy.core.interfaces.game.Player
 import ru.rpuxa.strategy.core.interfaces.game.Server
 import ru.rpuxa.strategy.core.interfaces.visual.BoardEffect
+import java.util.*
 import kotlin.math.sqrt
 
 
@@ -71,6 +72,8 @@ const val TOWN_LEVEL_PERFORMANCE_FACTOR = 1.15f
 
 const val OPEN_OBJ_INFO_DIRECTION = 350L
 
+val random = Random()
+
 
 /**
  * Метод для обозначения нереализованных полей
@@ -108,6 +111,8 @@ val PLAYER_NONE = object : Player {
                           attackerHit: Int, killed: Boolean, fieldAfterAttack: Field) = fail()
 
     override fun onSeizeTown(staticObject: Town, fieldAfterSeize: Field) = fail()
+
+    override fun onStifleRebellion(town: Town, fieldAfterSeize: Field) = fail()
 }
 
 /**
@@ -125,16 +130,11 @@ val PLAYER_RED: Player = object : Player by PLAYER_NONE {
  * Все методы не реализованы, кроме [passable], т.к через
  * пустую клетку можно пройти юнитом
  */
-val STATIC_OBJECT_NONE = object : StaticObject {
+val STATIC_OBJECT_NONE = object : StaticObject() {
     override val info: StaticObjectInfo
         get() = fail()
-    override val icon: Int
-        get() = fail()
-    override val passable = true
-    override val description: String
-        get() = fail()
-    override val name: String
-        get() = fail()
+    override val passable: Boolean
+        get() = true
     override var x: Int
         get() = fail()
         set(_) = fail()
@@ -151,20 +151,13 @@ val STATIC_OBJECT_NONE = object : StaticObject {
  *
  * Все методы не реализованы
  */
-val UNIT_NONE = object : Unit {
+val UNIT_NONE = object : Unit() {
     override val info: UnitInfo
-        get() = fail()
-    override val cost: Int
-        get() = fail()
-    override val description: String
-        get() = fail()
-    override val name: String
         get() = fail()
     override var movePoints: Int
         get() = fail()
         set(_) = fail()
-    override val baseMovePoints: Int
-        get() = fail()
+
     override var x: Int
         get() = fail()
         set(_) = fail()
@@ -174,8 +167,6 @@ val UNIT_NONE = object : Unit {
     override var health: Int
         get() = fail()
         set(_) = fail()
-    override val icon: Int
-        get() = fail()
     override val owner: Player
         get() = fail()
 

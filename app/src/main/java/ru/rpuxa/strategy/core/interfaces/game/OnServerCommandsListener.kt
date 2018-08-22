@@ -51,4 +51,6 @@ interface OnServerCommandsListener {
     )
 
     fun onSeizeTown(staticObject: Town, fieldAfterSeize: Field)
+
+    fun onStifleRebellion(town: Town, fieldAfterSeize: Field)
 }
