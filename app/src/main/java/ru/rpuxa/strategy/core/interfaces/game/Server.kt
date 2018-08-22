@@ -92,6 +92,9 @@ interface Server {
         val enoughMovePoints =
                 RuleException("Needed more move point to do this")
 
+        val actionWithNotFromYouObject =
+                RuleException("You can not interact with other player's objects")
+
     }
 
     class RuleException(msg: String) : Exception(msg)

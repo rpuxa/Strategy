@@ -1,13 +1,13 @@
 package ru.rpuxa.strategy.core.interfaces.field.objects.units
 
+import ru.rpuxa.strategy.core.interfaces.field.Owned
 import ru.rpuxa.strategy.core.interfaces.field.info.units.UnitInfo
 import ru.rpuxa.strategy.core.interfaces.field.objects.BuildableObject
-import ru.rpuxa.strategy.core.interfaces.game.Player
 
 /**
  * Юнит. Может перемещаться по полю
  */
-abstract class Unit : BuildableObject() {
+abstract class Unit : BuildableObject(), Owned {
     abstract override val info: UnitInfo
 
     /**
@@ -30,11 +30,6 @@ abstract class Unit : BuildableObject() {
 
     val baseHealth: Int
         get() = info.baseHealth
-
-    /**
-     * Владелец юнита
-     */
-    abstract val owner: Player
 
     /**
      * Возвращает количество оставшихся жизней после

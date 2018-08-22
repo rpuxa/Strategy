@@ -12,7 +12,7 @@ interface RegionBuilder {
 
     val visual: FieldVisualizer
 
-    val field: Field
+    var field: Field
 
     /**
      *  Создать регион из коллекции клеток

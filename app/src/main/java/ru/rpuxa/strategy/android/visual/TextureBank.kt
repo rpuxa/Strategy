@@ -41,7 +41,9 @@ class TextureBank(private val resources: Resources) {
                 R.drawable.sword,
                 R.drawable.flag,
                 R.drawable.peaceful_unit,
-                R.drawable.town
+                R.drawable.town,
+                R.drawable.seized_town,
+                R.drawable.capital
         )
     }
 

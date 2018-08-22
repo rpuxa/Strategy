@@ -17,7 +17,7 @@ import kotlin.math.abs
 import kotlin.math.cos
 import kotlin.math.sin
 
-class PathRegionBuilder(override val visual: FieldVisualizer, override val field: Field) : RegionBuilder {
+class PathRegionBuilder(override val visual: FieldVisualizer, override var field: Field) : RegionBuilder {
 
     override fun createFromCells(cells: Collection<Cell>): RegionPaint {
         val lines = LinkedList<Line>()

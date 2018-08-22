@@ -1,11 +1,12 @@
 package ru.rpuxa.strategy.core.implement.game.servers
 
+import ru.rpuxa.strategy.core.implement.field.statics.player.Capital
 import ru.rpuxa.strategy.core.implement.field.statics.player.Town
 import ru.rpuxa.strategy.core.implement.field.units.Colonist
-import ru.rpuxa.strategy.core.implement.field.units.Swordsman
 import ru.rpuxa.strategy.core.implement.game.players.Human
 import ru.rpuxa.strategy.core.interfaces.field.Location
 import ru.rpuxa.strategy.core.interfaces.field.MutableField
+import ru.rpuxa.strategy.core.interfaces.field.Owned
 import ru.rpuxa.strategy.core.interfaces.field.info.BuildableInfo
 import ru.rpuxa.strategy.core.interfaces.field.objects.BuildableObject
 import ru.rpuxa.strategy.core.interfaces.field.objects.statics.StaticObject
@@ -36,11 +37,7 @@ class InternalServer(val field: MutableField) : Server {
             throw IllegalStateException("No more 1 human in game!")
         }
 
-        field[4, 0].staticObject = Town(4 loc 0, PLAYER_RED)
-        field.setUnit(Swordsman(0 loc 0, players[0]))
-        val unit = Swordsman(4 loc 0, PLAYER_RED)
-        unit.health = 40
-        field.setUnit(unit)
+        field.setUnit(Colonist(0 loc 0, humans[0]))
 
         sendAll { it.onStart() }
         players[turn].onMoveStart()
@@ -48,6 +45,8 @@ class InternalServer(val field: MutableField) : Server {
 
     override fun moveUnit(unit: Unit, toLocation: Location, sender: Player) {
         if (sender.checkTurn())
+            return
+        if (unit.checkOwner(sender))
             return
 
         val move = field.getUnitMoves(unit).find { it.cell.x == toLocation.x && it.cell.y == toLocation.y }
@@ -68,7 +67,7 @@ class InternalServer(val field: MutableField) : Server {
 
     private fun unitEnterTown(unit: Unit) {
         val town = field[unit].staticObject as? Town ?: return
-        if (town.owner != town.owner) {
+        if (unit.owner != town.owner) {
             town.movesToDestroy = 2
             val fieldAfterSeize = field.copy()
             sendAll { it.onSeizeTown(town, fieldAfterSeize) }
@@ -82,6 +81,10 @@ class InternalServer(val field: MutableField) : Server {
     override fun build(buildableInfo: BuildableInfo, clazz: KClass<out BuildableObject>, location: Location, town: Town, sender: Player) {
         if (sender.checkTurn())
             return
+
+        if (town.checkOwner(sender))
+            return
+
         when {
             town.workPoints < buildableInfo.cost -> sender.onRuleViolate(Server.Rules.enoughMoney(buildableInfo, town))
             town.bought -> sender.onRuleViolate(Server.Rules.secondTimeBuilding)
@@ -99,7 +102,9 @@ class InternalServer(val field: MutableField) : Server {
                     else -> throw IllegalStateException()
                 }
 
-                sendAll { it.onBuild(buildable) }
+                val fieldAfter = field.copy()
+
+                sendAll { it.onBuild(buildable, fieldAfter) }
             }
         }
     }
@@ -109,22 +114,31 @@ class InternalServer(val field: MutableField) : Server {
             return
 
         val cell = field[location]
+        val unit = cell.unit
+
+        if (unit.checkOwner(sender))
+            return
+
         when {
-            cell.unit !is Colonist -> sender.onRuleViolate(Server.Rules.noColonistLayTown)
+            unit !is Colonist -> sender.onRuleViolate(Server.Rules.noColonistLayTown)
             cell.staticObject != STATIC_OBJECT_NONE -> sender.onRuleViolate(Server.Rules.layTownNoEmptyCell)
-            cell.unit.movePoints == 0 -> sender.onRuleViolate(Server.Rules.enoughMovePoints)
+            unit.movePoints == 0 -> sender.onRuleViolate(Server.Rules.enoughMovePoints)
             else -> {
                 cell.unit = UNIT_NONE
-                cell.staticObject = Town(location, sender)
+                cell.staticObject = if (sender.townsCount > 0) Town(location, sender) else Capital(location, sender)
                 field.getTownTerritory(cell.staticObject as Town).forEach { it.owner = sender }
 
-                sendAll { it.onTownLaid(location) }
+                val fieldAfter = field.copy()
+
+                sendAll { it.onTownLaid(location, fieldAfter) }
             }
         }
     }
 
     override fun attack(defender: Unit, attacker: Unit, sender: Player) {
         if (sender.checkTurn())
+            return
+        if (attacker.checkOwner(sender))
             return
 
         //TODO провека на атаку
@@ -170,13 +184,25 @@ class InternalServer(val field: MutableField) : Server {
             if (it.unit != UNIT_NONE)
                 it.unit.movePoints = it.unit.baseMovePoints
             val obj = it.staticObject
-            if (obj is Town) {
+            if (obj is Town && obj.owner == sender) {
                 obj.workPoints += obj.performance
                 obj.addDay()
                 obj.bought = false
+                if (obj.movesToDestroy > 0 && --obj.movesToDestroy == 0) {
+                    destroyTown(obj)
+                }
             }
         }
         players[turn].onMoveStart()
+    }
+
+    private fun destroyTown(town: Town) {
+        field.getTownTerritory(town).forEach { it.owner = PLAYER_NONE }
+        field[town].staticObject = STATIC_OBJECT_NONE
+
+        val fieldAfter = field.copy()
+
+        sendAll { it.onTownDestroyed(town, fieldAfter) }
     }
 
     private fun Player.checkTurn(): Boolean {
@@ -185,6 +211,14 @@ class InternalServer(val field: MutableField) : Server {
             return true
         }
         return false
+    }
+
+    private fun Owned.checkOwner(player: Player): Boolean {
+        if (owner == player)
+            return false
+
+        player.onRuleViolate(Server.Rules.actionWithNotFromYouObject)
+        return true
     }
 
     private val Player.isHisTurn: Boolean

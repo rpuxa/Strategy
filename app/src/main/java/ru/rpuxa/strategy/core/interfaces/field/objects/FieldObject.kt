@@ -19,7 +19,7 @@ abstract class FieldObject : Location {
      */
 
 
-    val icon: Int
+    open val icon: Int
         get() = info.icon
 
 

@@ -27,6 +27,7 @@ import ru.rpuxa.strategy.core.implement.visual.boardEffects.DashBoardEffect
 import ru.rpuxa.strategy.core.interfaces.field.Cell
 import ru.rpuxa.strategy.core.interfaces.field.Field
 import ru.rpuxa.strategy.core.interfaces.field.Location
+import ru.rpuxa.strategy.core.interfaces.field.Owned
 import ru.rpuxa.strategy.core.interfaces.field.objects.FieldObject
 import ru.rpuxa.strategy.core.interfaces.field.objects.statics.StaticObject
 import ru.rpuxa.strategy.core.interfaces.field.objects.units.FightingUnit
@@ -40,8 +41,8 @@ import ru.rpuxa.strategy.core.interfaces.visual.region.RegionBuilder
 import ru.rpuxa.strategy.core.interfaces.visual.region.RegionPaint
 import ru.rpuxa.strategy.core.others.*
 import java.util.*
+import java.util.concurrent.ConcurrentHashMap
 import kotlin.collections.ArrayList
-import kotlin.collections.HashMap
 
 /**
  * Реализация [FieldVisualizer] для android устройств
@@ -81,7 +82,6 @@ class FieldView(context: Context, attrs: AttributeSet) : View(context, attrs), F
 
     override fun onDraw(canvas: Canvas?) {
         canvas!!
-        //textures.updateSize(camera.width.toInt(), camera.height.toInt())
         val scale = camera.width / canvas.width
         canvas.translate(canvas.width / 2f - camera.x / scale, canvas.height / 2f - camera.y / scale)
         canvas.scale(1 / scale, 1 / scale)
@@ -94,6 +94,7 @@ class FieldView(context: Context, attrs: AttributeSet) : View(context, attrs), F
         canvas.drawPaint(paint)
 
         if (rebuildTerritories) {
+            regionBuilder.field = field!!
             territories = regionBuilder.createFromTerritories()
         }
 
@@ -104,14 +105,9 @@ class FieldView(context: Context, attrs: AttributeSet) : View(context, attrs), F
 
         rebuildTerritories = false
 
-        for ((obj, shift) in HashMap(fieldObjectsLocation)) {
+        for ((obj, _) in fieldObjectsLocation) {
             if (obj.isNone)
                 continue
-            if (obj is StaticObject) {
-                //draw static objects
-                val (objectX, objectY) = locationToWorld(obj)
-                canvas.drawBitmap(obj.icon, objectX + UNIT_TEXTURE_X, objectY + UNIT_TEXTURE_Y, UNIT_TEXTURE_HEIGHT)
-            }
 
             if (obj is Unit) {
                 val (unitX, unitY) = fieldObjectsLocation[obj]!!.toPoint()
@@ -128,11 +124,16 @@ class FieldView(context: Context, attrs: AttributeSet) : View(context, attrs), F
                 paint.strokeWidth = 0f
                 canvas.drawRect(leftHealthBar, topHealthBar, rightHealthBar, bottomHealthBar, paint)
                 //draw unit
-                if (field!![obj].staticObject == STATIC_OBJECT_NONE || shift.offers.x != 0f || shift.offers.y != 0f) {
+                if (field!![obj].staticObject == STATIC_OBJECT_NONE || locationToWorld(obj) != unitX pt unitY) {
                     val index = if (obj is FightingUnit) TexturesId.UNIT else TexturesId.PEACEFUL_UNIT
                     canvas.drawBitmap(index, unitX + UNIT_TEXTURE_X, unitY + UNIT_TEXTURE_Y, UNIT_TEXTURE_HEIGHT)
                 }
+            }
 
+            if (obj is StaticObject) {
+                //draw static objects
+                val (objectX, objectY) = locationToWorld(obj)
+                canvas.drawBitmap(obj.icon, objectX + UNIT_TEXTURE_X, objectY + UNIT_TEXTURE_Y, UNIT_TEXTURE_HEIGHT)
             }
         }
 
@@ -246,11 +247,6 @@ class FieldView(context: Context, attrs: AttributeSet) : View(context, attrs), F
                 }
             }
     )
-
-    private fun Canvas.drawBitmap(bitmapFromBank: Int, centerX: Float, centerY: Float, width: Float, height: Float) {
-        val bitmap = textures.getScaled(bitmapFromBank, width.toInt(), height.toInt())
-        drawBitmap(bitmap, centerX - width / 2, centerY - height / 2, paint)
-    }
 
     private fun Canvas.drawBitmap(bitmapFromBank: Int, centerX: Float, centerY: Float, height: Float) {
         val bitmap = textures.getProportionalScaled(bitmapFromBank, height.toInt())
@@ -409,18 +405,18 @@ class FieldView(context: Context, attrs: AttributeSet) : View(context, attrs), F
 //                (x - (this.x + width / 2)) * this@FieldView.width / width to (y - (this.y + height / 2)) * this@FieldView.height / height
     }
 
-    private inner class FieldObjectsLocation : HashMap<FieldObject, FieldObjectsLocation.Shift>() {
+    private inner class FieldObjectsLocation : ConcurrentHashMap<FieldObject, FieldObjectsLocation.Shift>() {
 
         fun updateLocations(field: Field) {
             this@FieldView.field = field
             clear()
             for (cell in field)
                 for (obj in cell.objects)
-                if (obj.isNotNone) {
-                    val locationToWorld = locationToWorld(obj)
-                    val value = locationToWorld.toShift()
-                    put(obj, value)
-                }
+                    if (obj.isNotNone) {
+                        val locationToWorld = locationToWorld(obj)
+                        val value = locationToWorld.toShift()
+                        put(obj, value)
+                    }
             /* for ((obj, _) in toList())
                  if (field.find { it.unit == obj || it.staticObject == obj } == null)
                      remove(obj)*/
@@ -454,8 +450,11 @@ class FieldView(context: Context, attrs: AttributeSet) : View(context, attrs), F
             fun Cell.click(chosenObj: Boolean) {
                 if (human.moveMode.running) {
                     when {
-                        this in human.moveMode.selections[0] -> //Обычное передвижение
+                        this in human.moveMode.selections[0] -> {
+                            //Обычное передвижение
                             human.executor.moveUnit(human.moveMode.unit, this, human)
+                            human.moveMode.on(human.moveMode.unit)
+                        }
                         this in human.moveMode.selections[1] -> {
                             //Атака
                             if (unit is PeacefulUnit) {
@@ -561,11 +560,13 @@ class FieldView(context: Context, attrs: AttributeSet) : View(context, attrs), F
                 invalidate()
             }
 
+            val showControlButtons = (selectedObject as? Owned)?.owner?.equals(human) ?: true
+
             val update = currentSelection == selectedObject
 
             if (update) {
                 human.moveMode.off(true)
-                moveModeOn()
+//                moveModeOn()
             }
 
             if (currentSelection != null)
@@ -579,17 +580,26 @@ class FieldView(context: Context, attrs: AttributeSet) : View(context, attrs), F
                 is Town -> {
                     choseMenu(TOWN)
                     val view = activity.main_obj_info.town_info_include
+                    view.build_stopped.visibility = if (showControlButtons && selectedObject.movesToDestroy > 0)
+                        View.VISIBLE
+                    else
+                        View.GONE
+                    view.rebellion.visibility = if (selectedObject.movesToDestroy > 0)
+                        View.VISIBLE
+                    else
+                        View.GONE
                     view.town_bar_work_points.progress = selectedObject.workPoints
                     view.town_work_points.text = selectedObject.workPoints.toString()
                     view.town_bar_work_points.max = selectedObject.maxWorkPoints
                     view.town_max_work_points.text = selectedObject.maxWorkPoints.toString()
                     view.town_performance.text = selectedObject.performance.toString()
-                    view.town_build_list.adapter = TownBuildingsAdapter(textures) { info, clazz ->
-                        if (info.cost <= selectedObject.workPoints && !selectedObject.bought) {
-                            human.executor.build(info, clazz, selectedObject, selectedObject, human)
-                            closeInfoHeader(true)
+                    if (showControlButtons)
+                        view.town_build_list.adapter = TownBuildingsAdapter(textures) { info, clazz ->
+                            if (info.cost <= selectedObject.workPoints && !selectedObject.bought) {
+                                human.executor.build(info, clazz, selectedObject, selectedObject, human)
+                                closeInfoHeader(true)
+                            }
                         }
-                    }
                 }
 
                 is Unit -> {
@@ -597,12 +607,12 @@ class FieldView(context: Context, attrs: AttributeSet) : View(context, attrs), F
                     val view = activity.main_obj_info.unit_info_include
 
                     view.build_town.visibility =
-                            if (selectedObject is Colonist && selectedObject.movePoints > 0)
-                                View.VISIBLE
-                            else
+                            if (!showControlButtons || selectedObject !is Colonist || selectedObject.movePoints <= 0)
                                 View.GONE
+                            else
+                                View.VISIBLE
+                    view.unit_move.visibility = if (!showControlButtons || selectedObject.movePoints == 0) View.GONE else View.VISIBLE
                     view.unit_hp_bar.progress = selectedObject.health
-                    view.unit_move.visibility = if (selectedObject.movePoints == 0) View.GONE else View.VISIBLE
                     view.unit_info_move_point.text = selectedObject.movePoints.toString()
                     view.unit_info_max_move_points.text = selectedObject.baseMovePoints.toString()
 

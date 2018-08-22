@@ -102,9 +102,9 @@ val PLAYER_NONE = object : Player {
 
     override fun onMoveStart() = fail()
 
-    override fun onBuild(buildableObject: BuildableObject) = fail()
+    override fun onBuild(buildableObject: BuildableObject, fieldAfterBuild: Field) = fail()
 
-    override fun onTownLaid(location: Location) = fail()
+    override fun onTownLaid(location: Location, fieldAfterTownLaid: Field) = fail()
 
     override fun onAttack(moveFromLocation: Location, attackFromLocation: Location,
                           attacker: Unit, defender: Unit, defenderHit: Int,
@@ -113,6 +113,8 @@ val PLAYER_NONE = object : Player {
     override fun onSeizeTown(staticObject: Town, fieldAfterSeize: Field) = fail()
 
     override fun onStifleRebellion(town: Town, fieldAfterSeize: Field) = fail()
+
+    override fun onTownDestroyed(location: Location, fieldAfterTownDestroyed: Field) = fail()
 }
 
 /**

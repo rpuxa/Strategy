@@ -28,7 +28,7 @@ class Human(
 
     override fun onStart() {
         visual.onCreate()
-        updateVisual()
+        visual.draw(field)
     }
 
     override fun onMoveUnit(from: Location, to: Location, sender: Player, fieldAfterMove: Field) {
@@ -41,26 +41,26 @@ class Human(
     }
 
     override fun onMoveStart() {
-        updateVisual()
+        updateVisual(field)
     }
 
     override fun onRuleViolate(rule: Server.RuleException) {
         throw rule
     }
 
-    override fun onBuild(buildableObject: BuildableObject) {
-        updateVisual()
+    override fun onBuild(buildableObject: BuildableObject, fieldAfterBuild: Field) {
+        updateVisual(fieldAfterBuild)
     }
 
-    override fun onTownLaid(location: Location) {
-        updateVisual()
+    override fun onTownLaid(location: Location, fieldAfterTownLaid: Field) {
+        updateVisual(fieldAfterTownLaid)
     }
 
     override fun onStifleRebellion(town: Town, fieldAfterSeize: Field) {
-        updateVisual()
+        updateVisual(fieldAfterSeize)
     }
 
-    private fun updateVisual() = visual.draw(field)
+    private fun updateVisual(field: Field) = visual.animator.animate(UpdateAnimation(field))
 
     override fun onAttack(moveFromLocation: Location,
                           attackFromLocation: Location,
@@ -83,7 +83,11 @@ class Human(
     }
 
     override fun onSeizeTown(staticObject: Town, fieldAfterSeize: Field) {
+        updateVisual(fieldAfterSeize)
+    }
 
+    override fun onTownDestroyed(location: Location, fieldAfterTownDestroyed: Field) {
+        updateVisual(fieldAfterTownDestroyed)
     }
 
     val moveMode = MoveMode()

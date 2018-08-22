@@ -9,7 +9,7 @@ class IconsBank(private val textures: TextureBank) {
     private val paint = Paint()
 
     operator fun get(id: Int, color: Int, radius: Int): Bitmap {
-        val key = (id.toLong() shl 32) or color.toLong()
+        val key = (id xor color).toLong()
         val bitmap = map[key]
         if (bitmap != null)
             return bitmap

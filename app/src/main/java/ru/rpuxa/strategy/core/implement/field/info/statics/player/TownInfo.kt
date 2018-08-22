@@ -7,16 +7,19 @@ object TownInfo : PlayerBuildingInfo {
 
     override val passable = true
     override val icon = TexturesId.TOWN
+    const val seized_icon = TexturesId.SEIZED_TOWN
     override val name = "Город"
     override val description = "Здесь вы можете создавать юниты, строить здания"
 
     /**
      * Максимальное количество очков работы, которое может вмещать город
      */
-    val maxWorkPoints = 500
+    const val maxWorkPoints = 500
 
     /**
      * Радиус области, которую выделяет город вокруг себя
      */
-    val selectionTerritory = 2
+    const val selectionTerritory = 2
+
+    const val capitalIcon = TexturesId.CAPITAL
 }

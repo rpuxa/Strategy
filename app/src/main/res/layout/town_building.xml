@@ -1,14 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content">
 
     <ImageView
         android:id="@+id/icon"
-        android:layout_width="70dp"
-        android:layout_height="100dp"
+        android:layout_width="30dp"
+        android:layout_height="30dp"
         android:layout_marginStart="8dp"
         android:layout_marginTop="8dp"
         app:layout_constraintStart_toStartOf="parent"
@@ -21,18 +20,21 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
         android:text="Мечник"
-        android:textSize="24sp"
+        android:textSize="12sp"
         android:textStyle="bold"
         app:layout_constraintStart_toEndOf="@+id/icon"
         app:layout_constraintTop_toTopOf="@+id/icon" />
 
     <TextView
         android:id="@+id/description"
-        android:layout_width="wrap_content"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
+        android:layout_marginEnd="8dp"
         android:layout_marginStart="8dp"
-        android:layout_marginTop="8dp"
-        android:text="Эффективадовплдв"
+        android:text="asdasdgasjdhasdasd"
+        android:textSize="10sp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/buy"
         app:layout_constraintStart_toEndOf="@+id/icon"
         app:layout_constraintTop_toBottomOf="@+id/name" />
 
@@ -41,36 +43,30 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="8dp"
-        android:layout_marginTop="8dp"
-        android:text="Стоимость"
-        app:layout_constraintStart_toEndOf="@+id/icon"
-        app:layout_constraintTop_toBottomOf="@+id/description" />
+        android:text="Стоимость:"
+        android:textSize="10sp"
+        app:layout_constraintBottom_toBottomOf="@+id/name"
+        app:layout_constraintStart_toEndOf="@+id/name"
+        app:layout_constraintTop_toTopOf="@+id/name" />
 
     <TextView
         android:id="@+id/cost"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="24dp"
+        android:layout_marginStart="8dp"
         android:text="240"
+        android:textSize="10sp"
         app:layout_constraintStart_toEndOf="@+id/textView9"
         app:layout_constraintTop_toTopOf="@+id/textView9" />
-
-    <TextView
-        android:id="@+id/textView11"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
-        android:text="очков работы"
-        app:layout_constraintStart_toEndOf="@+id/cost"
-        app:layout_constraintTop_toTopOf="@+id/cost" />
 
     <Button
         android:id="@+id/buy"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
-        android:layout_marginTop="8dp"
+        android:layout_marginEnd="8dp"
         android:text="Нанять"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/icon" />
+        android:textSize="10sp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/icon" />
 </android.support.constraint.ConstraintLayout>

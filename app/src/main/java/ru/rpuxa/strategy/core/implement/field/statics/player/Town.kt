@@ -12,7 +12,7 @@ import ru.rpuxa.strategy.core.others.copyLocation
 /**
  * Класс города. Предназначен для постройки новых объектов [Buildable]
  */
-class Town : PlayerBuilding {
+open class Town : PlayerBuilding {
 
     constructor(location: Location, owner: Player) : super() {
         this.owner = owner
@@ -37,10 +37,13 @@ class Town : PlayerBuilding {
     override val info
         get() = TownInfo
 
-    override var owner: Player
+    override val icon
+        get() = if (movesToDestroy == -1) info.icon else info.seized_icon
 
-    override var x: Int
-    override var y: Int
+    final override var owner: Player
+
+    final override var x: Int
+    final override var y: Int
 
     override fun copy(): Town = Town(this.copyLocation(), owner, id, workPoints, bought, level, movesToDestroy)
 

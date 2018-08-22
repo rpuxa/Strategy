@@ -33,12 +33,12 @@ interface OnServerCommandsListener {
     /**
      * Вызывается при постройке [BuildableObject] в городе
      */
-    fun onBuild(buildableObject: BuildableObject)
+    fun onBuild(buildableObject: BuildableObject, fieldAfterBuild: Field)
 
     /**
      * Вызывается когда поселенец закладывает город
      */
-    fun onTownLaid(location: Location)
+    fun onTownLaid(location: Location, fieldAfterTownLaid: Field)
 
     fun onAttack(moveFromLocation: Location,
                  attackFromLocation: Location,
@@ -53,4 +53,6 @@ interface OnServerCommandsListener {
     fun onSeizeTown(staticObject: Town, fieldAfterSeize: Field)
 
     fun onStifleRebellion(town: Town, fieldAfterSeize: Field)
+
+    fun onTownDestroyed(location: Location, fieldAfterTownDestroyed: Field)
 }
