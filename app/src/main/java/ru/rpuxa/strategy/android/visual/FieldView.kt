@@ -47,6 +47,7 @@ import kotlin.collections.ArrayList
 /**
  * Реализация [FieldVisualizer] для android устройств
  */
+@Deprecated("use Surface view instead")
 class FieldView(context: Context, attrs: AttributeSet) : View(context, attrs), FieldVisualizer {
 
     override val animator = Animator()
@@ -193,6 +194,7 @@ class FieldView(context: Context, attrs: AttributeSet) : View(context, attrs), F
     @Synchronized
     override fun invalidate() {
         activity.runOnUiThread {
+
             super.invalidate()
         }
     }
