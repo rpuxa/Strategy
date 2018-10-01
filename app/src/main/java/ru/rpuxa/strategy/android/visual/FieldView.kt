@@ -1,3 +1,4 @@
+/*
 package ru.rpuxa.strategy.android.visual
 
 import android.annotation.SuppressLint
@@ -44,9 +45,9 @@ import java.util.*
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.collections.ArrayList
 
-/**
- * Реализация [FieldVisualizer] для android устройств
- */
+*/
+/*
+
 @Deprecated("use Surface view instead")
 class FieldView(context: Context, attrs: AttributeSet) : View(context, attrs), FieldVisualizer {
 
@@ -150,7 +151,7 @@ class FieldView(context: Context, attrs: AttributeSet) : View(context, attrs), F
             fieldObjectsLocation.updateLocations(this.field as HexagonField)
         regionBuilder = PathRegionBuilder(this, this.field as HexagonField)
         rebuildTerritories = true
-        invalidate()
+        update()
     }
 
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
@@ -182,17 +183,17 @@ class FieldView(context: Context, attrs: AttributeSet) : View(context, attrs), F
     override fun translateCamera(deltaX: Float, deltaY: Float) {
         camera.x += deltaX
         camera.y += deltaY
-        invalidate()
+        update()
     }
 
     override fun zoomCamera(value: Float) {
         camera.width += value
         camera.height += value / width * height
-        invalidate()
+        update()
     }
 
     @Synchronized
-    override fun invalidate() {
+    override fun update() {
         activity.runOnUiThread {
 
             super.invalidate()
@@ -320,12 +321,12 @@ class FieldView(context: Context, attrs: AttributeSet) : View(context, attrs), F
         private fun seizeTown(animation: SeizeTownAnimation) {
             fieldObjectsLocation.updateLocations(animation.field)
             rebuildTerritories = true
-            invalidate()
+            update()
         }
 
         private fun removeUnit(animation: RemoveUnitAnimation) {
             fieldObjectsLocation.remove(animation.unit)
-            invalidate()
+            update()
         }
 
         private fun moveUnit(animation: MoveUnitAnimation) {
@@ -335,13 +336,13 @@ class FieldView(context: Context, attrs: AttributeSet) : View(context, attrs), F
             val deltaY = worldLocationY - worldUnitY
             valueAnimate(animation) {
                 fieldObjectsLocation[animation.unit]!!.offers = deltaX * it pt deltaY * it
-                invalidate()
+                update()
             }
             if (animation.updateAfterAnimation)
                 fieldObjectsLocation.updateLocations(animation.field)
             else
                 fieldObjectsLocation.zeroShifts()
-            invalidate()
+            update()
         }
 
         private fun moveCameraToLocation(animation: MoveCameraAnimation) {
@@ -362,7 +363,7 @@ class FieldView(context: Context, attrs: AttributeSet) : View(context, attrs), F
             valueAnimate(animation) {
                 val deltaY = -it * CELL_RADIUS
                 healthDrawerText.deltaY = deltaY
-                invalidate()
+                update()
             }
             healthList.remove(healthDrawerText)
         }
@@ -370,7 +371,7 @@ class FieldView(context: Context, attrs: AttributeSet) : View(context, attrs), F
         private fun update(updateAnimation: UpdateAnimation) {
             fieldObjectsLocation.updateLocations(updateAnimation.field)
             rebuildTerritories = true
-            invalidate()
+            update()
         }
 
         private inline fun valueAnimate(animation: Animation, block: (Float) -> kotlin.Unit) = valueAnimate(animation.duration, block)
@@ -419,9 +420,11 @@ class FieldView(context: Context, attrs: AttributeSet) : View(context, attrs), F
                         val value = locationToWorld.toShift()
                         put(obj, value)
                     }
-            /* for ((obj, _) in toList())
+            */
+/* for ((obj, _) in toList())
                  if (field.find { it.unit == obj || it.staticObject == obj } == null)
-                     remove(obj)*/
+                     remove(obj)*//*
+
         }
 
         inner class Shift(var start: Point, var offers: Point) {
@@ -559,7 +562,7 @@ class FieldView(context: Context, attrs: AttributeSet) : View(context, attrs), F
                 regions.forEach(::select)
                 human.moveMode.selections = regions
                 human.moveMode.on(selectedObject)
-                invalidate()
+                update()
             }
 
             val showControlButtons = (selectedObject as? Owned)?.owner?.equals(human) ?: true
@@ -665,7 +668,8 @@ class FieldView(context: Context, attrs: AttributeSet) : View(context, attrs), F
                 return
             val view = activity.main_obj_info
             view.visibility = if (open) View.VISIBLE else View.GONE
-            /* if (open) {
+            */
+/* if (open) {
                  view.visibility = View.INVISIBLE
              }
               val mainHeight = activity.main_view.height
@@ -683,7 +687,8 @@ class FieldView(context: Context, attrs: AttributeSet) : View(context, attrs), F
                       view.layout(0, i, view.width, mainHeight + view.height + shift)
                   }
               }
-              animation.start()*/
+              animation.start()*//*
+
             opened = open
         }
 
@@ -711,4 +716,4 @@ class FieldView(context: Context, attrs: AttributeSet) : View(context, attrs), F
             canvas.drawText(text, worldX, worldY + deltaY, paint)
         }
     }
-}
+}*/

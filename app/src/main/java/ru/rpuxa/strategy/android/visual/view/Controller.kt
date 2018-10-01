@@ -37,7 +37,7 @@ internal class Controller(override val view: FieldSurfaceView) : View.OnTouchLis
                         }.show()
                     }
                     else -> {
-                        closeInfoHeader(true)
+                        view.headerController.closeInfoHeader(true)
                         return
                     }
                 }
@@ -47,18 +47,18 @@ internal class Controller(override val view: FieldSurfaceView) : View.OnTouchLis
 
 
             if (this == CELL_NONE || unit == UNIT_NONE && staticObject == STATIC_OBJECT_NONE) {
-                closeInfoHeader(true)
+                view.headerController.closeInfoHeader(true)
                 return
             }
 
-            openInfoHeader(if (chosenObj && staticObject != STATIC_OBJECT_NONE) staticObject else unit)
+            view.openInfoHeader(if (chosenObj && staticObject != STATIC_OBJECT_NONE) staticObject else unit)
         }
 
         fun click(x: Float, y: Float) {
-            val (worldX, worldY) = projectToWorld(x, y)
+            val (worldX, worldY) = view.projectToWorld(x, y)
             var chosenUnit = human.moveMode.running
-            val findCell = field!!.find {
-                val (cellWorldX, cellWorldY) = locationToWorld(it)
+            val findCell = view.field!!.find {
+                val (cellWorldX, cellWorldY) = view.locationToWorld(it)
                 chosenUnit = dist(
                         worldX, worldY,
                         cellWorldX + UNIT_ICON_X,
@@ -67,7 +67,7 @@ internal class Controller(override val view: FieldSurfaceView) : View.OnTouchLis
                 ) <= UNIT_ICON_RADIUS
                 dist(cellWorldX, cellWorldY, worldX, worldY) <= CELL_INSIDE_RADIUS
             }
-            findCell.click(!chosenUnit) ?: CELL_NONE.click(false)
+            findCell?.click(!chosenUnit) ?: CELL_NONE.click(false)
         }
 
 
@@ -81,7 +81,10 @@ internal class Controller(override val view: FieldSurfaceView) : View.OnTouchLis
 
             MotionEvent.ACTION_MOVE -> when (event.pointerCount) {
                 1 -> if (!zoomed) {
-                    translateCamera((lastTouch0!![0] - event.x) / width * camera.width, (lastTouch0!![1] - event.y) / height * camera.height)
+                    view.translateCamera(
+                            (lastTouch0!![0] - event.x) / view.width * view.camera.width,
+                            (lastTouch0!![1] - event.y) / view.height * view.camera.height
+                    )
                     lastTouch0 = arrayOf(event.x, event.y)
                 }
 
@@ -93,7 +96,7 @@ internal class Controller(override val view: FieldSurfaceView) : View.OnTouchLis
                             event.getAxisValue(MotionEvent.AXIS_Y, 1)
                     )
                     if (lastDist != null) {
-                        zoomCamera(lastDist!! - currentDist)
+                        view.zoomCamera(lastDist!! - currentDist)
                     }
 
                     lastDist = currentDist

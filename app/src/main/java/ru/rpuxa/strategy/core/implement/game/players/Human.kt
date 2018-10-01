@@ -108,7 +108,7 @@ class Human(
                 return
             selections.forEach(visual::deselect)
             if (invalidate)
-                visual.invalidate()
+                visual.update()
             running = false
         }
     }

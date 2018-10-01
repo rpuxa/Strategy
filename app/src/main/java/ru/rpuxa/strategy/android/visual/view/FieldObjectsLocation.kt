@@ -7,7 +7,7 @@ import ru.rpuxa.strategy.core.others.isNotNone
 import ru.rpuxa.strategy.core.others.pt
 import java.util.concurrent.ConcurrentHashMap
 
-internal class FieldObjectsLocation(override val view: FieldSurfaceView) :
+class FieldObjectsLocation(override val view: FieldSurfaceView) :
         ConcurrentHashMap<FieldObject, FieldObjectsLocation.Shift>(), FieldSurfaceView.Inner {
 
     fun updateLocations(field: Field) {

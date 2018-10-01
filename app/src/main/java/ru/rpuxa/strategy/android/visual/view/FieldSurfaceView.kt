@@ -3,7 +3,6 @@ package ru.rpuxa.strategy.android.visual.view
 import android.app.Activity
 import android.content.Context
 import android.graphics.*
-import android.graphics.Camera
 import android.util.AttributeSet
 import android.view.SurfaceHolder
 import android.view.SurfaceView
@@ -11,7 +10,6 @@ import android.view.View
 import kotlinx.android.synthetic.main.main.*
 import kotlinx.android.synthetic.main.object_info.view.*
 import ru.rpuxa.strategy.android.others.composeEffects
-import ru.rpuxa.strategy.android.visual.FieldView
 import ru.rpuxa.strategy.android.visual.IconsBank
 import ru.rpuxa.strategy.android.visual.TextureBank
 import ru.rpuxa.strategy.android.visual.region.PathRegion
@@ -32,30 +30,42 @@ import ru.rpuxa.strategy.core.interfaces.visual.region.RegionBuilder
 import ru.rpuxa.strategy.core.interfaces.visual.region.RegionPaint
 import ru.rpuxa.strategy.core.others.*
 
-class FieldSurfaceView(context: Context, attrs: AttributeSet) : SurfaceView(context, attrs), SurfaceHolder.Callback, FieldVisualizer {
+/**
+ * Реализация [FieldSurfaceView] для андроид
+ */
+class FieldSurfaceView(context: Context, attrs: AttributeSet) :
+        SurfaceView(context, attrs),
+        SurfaceHolder.Callback,
+        FieldVisualizer {
 
-    override fun surfaceDestroyed(holder: SurfaceHolder?) {}
+    init {
+        holder.addCallback(this)
+    }
 
-    override val animator = Animator()
+    override val animator = Animator(this)
+
     override var field: Field? = null
+    val paint = Paint()
 
 
-    private val paint = Paint()
-    internal val camera = Camera()
-    internal var rebuildTerritories = true
-    private val textures = TextureBank(resources)
-    private val icons = IconsBank(textures)
-    private lateinit var regionBuilder: RegionBuilder
-    private lateinit var territories: Array<RegionPaint>
-    private val selections = ArrayList<RegionPaint>()
-    internal val fieldObjectsLocation = FieldObjectsLocation()
-    internal lateinit var human: Human
-    private val activity = context as Activity
-    private val headerController = HeaderInfoController()
-    private val healthList = ArrayList<FieldView.HealthDrawerText>()
+    val camera = Camera(this)
+    var rebuildTerritories = true
+    val textures = TextureBank(resources)
+    val icons = IconsBank(textures)
+    lateinit var regionBuilder: RegionBuilder
+    lateinit var territories: Array<RegionPaint>
+    val selections = ArrayList<RegionPaint>()
+    val fieldObjectsLocation = FieldObjectsLocation(this)
+    lateinit var human: Human
+    val activity get() = context as Activity
+    val headerController = HeaderInfoController(this)
+    val healthList = ArrayList<HealthDrawerText>()
 
-    override fun surfaceCreated(holder: SurfaceHolder?) {
-        setOnTouchListener(Controller())
+    private val drawerThreadLock = Object()
+    private lateinit var drawingThread: Thread
+
+    override fun surfaceCreated(holder: SurfaceHolder) {
+        setOnTouchListener(Controller(this))
 
         activity.main_obj_info.obj_close.setOnClickListener {
             closeInfoHeader(true)
@@ -65,11 +75,34 @@ class FieldSurfaceView(context: Context, attrs: AttributeSet) : SurfaceView(cont
             closeInfoHeader(true)
             human.executor.endMove(human)
         }
+        drawingThread =
+                Thread {
+                    while (!drawingThread.isInterrupted) {
+                        synchronized(drawerThreadLock) {
+                            val canvas = holder.lockCanvas(null)
+                            synchronized(holder) {
+                                drawCanvas(canvas)
+                            }
+                            holder.unlockCanvasAndPost(canvas)
+                            drawerThreadLock.wait()
+                        }
+                    }
+                }
+        drawingThread.start()
     }
 
+    override fun surfaceChanged(holder: SurfaceHolder?, format: Int, width: Int, height: Int) {
+        camera.height = camera.width / width * height
+    }
 
-    override fun onDraw(canvas: Canvas?) {
-        canvas!!
+    override fun surfaceDestroyed(holder: SurfaceHolder?) {
+        drawingThread.interrupt()
+    }
+
+    override fun onCreate() {
+    }
+
+    private fun drawCanvas(canvas: Canvas) {
         val scale = camera.width / canvas.width
         canvas.translate(canvas.width / 2f - camera.x / scale, canvas.height / 2f - camera.y / scale)
         canvas.scale(1 / scale, 1 / scale)
@@ -137,19 +170,12 @@ class FieldSurfaceView(context: Context, attrs: AttributeSet) : SurfaceView(cont
             fieldObjectsLocation.updateLocations(this.field as HexagonField)
         regionBuilder = PathRegionBuilder(this, this.field as HexagonField)
         rebuildTerritories = true
-        invalidate()
+        update()
     }
 
-    override fun surfaceChanged(holder: SurfaceHolder?, format: Int, width: Int, height: Int) {
-        camera.height = camera.width / width * height
-    }
-
-    override fun locationToWorld(x: Int, y: Int) = x * CELL_INSIDE_RADIUS pt
-            y * 3 * CELL_RADIUS +
-            if (x % 2 == 0)
-                0f
-            else
-                CELL_RADIUS * 1.5f
+    override fun locationToWorld(x: Int, y: Int) =
+            x * CELL_INSIDE_RADIUS pt
+                    y * 3 * CELL_RADIUS + if (x % 2 == 0) 0f else CELL_RADIUS * 1.5f
 
     override fun select(region: RegionPaint) {
         selections.add(region)
@@ -168,23 +194,24 @@ class FieldSurfaceView(context: Context, attrs: AttributeSet) : SurfaceView(cont
     override fun translateCamera(deltaX: Float, deltaY: Float) {
         camera.x += deltaX
         camera.y += deltaY
-        invalidate()
+        update()
     }
 
     override fun zoomCamera(value: Float) {
         camera.width += value
         camera.height += value / width * height
-        invalidate()
+        update()
     }
 
-    @Synchronized
-    override fun invalidate() {
-        TODO("переименовать в update и доделать вью, перенести все классы в папку view  Сильно логается FieldBiew при  большой карте поэтому мы и переделаывем в surface" +
-                "до скорого а я пошел делать adbWireless")
-        activity.runOnUiThread {
-
-            super.invalidate()
+    override fun update() {
+        synchronized(drawerThreadLock) {
+            drawerThreadLock.notify()
         }
+    }
+
+    @Deprecated("", ReplaceWith("super.invalidate()", "android.view.SurfaceView"))
+    override fun invalidate() {
+        super.invalidate()
     }
 
     override fun openInfoHeader(selectedObject: FieldObject) {
@@ -195,7 +222,7 @@ class FieldSurfaceView(context: Context, attrs: AttributeSet) : SurfaceView(cont
         headerController.closeInfoHeader(invalidate)
     }
 
-    internal fun RegionPaint.paintFill(canvas: Canvas, paint: Paint) {
+    fun RegionPaint.paintFill(canvas: Canvas, paint: Paint) {
         if (colorFill != COLOR_NONE) {
             paint.pathEffect = null
             paint.color = colorFill
@@ -210,7 +237,7 @@ class FieldSurfaceView(context: Context, attrs: AttributeSet) : SurfaceView(cont
         }
     }
 
-    internal fun RegionPaint.paintBorder(canvas: Canvas, paint: Paint) {
+    fun RegionPaint.paintBorder(canvas: Canvas, paint: Paint) {
         if (colorBorder != COLOR_NONE) {
             if (lineEffects != null)
                 paint.pathEffect = lineEffects!!.convertToPathEffects()
@@ -227,7 +254,7 @@ class FieldSurfaceView(context: Context, attrs: AttributeSet) : SurfaceView(cont
         }
     }
 
-    internal fun Array<BoardEffect>.convertToPathEffects() = composeEffects(
+    fun Array<BoardEffect>.convertToPathEffects() = composeEffects(
             Array(size) {
                 val boardEffect = this[it]
                 when (boardEffect) {
@@ -238,16 +265,16 @@ class FieldSurfaceView(context: Context, attrs: AttributeSet) : SurfaceView(cont
             }
     )
 
-    internal fun Canvas.drawBitmap(bitmapFromBank: Int, centerX: Float, centerY: Float, height: Float) {
+    fun Canvas.drawBitmap(bitmapFromBank: Int, centerX: Float, centerY: Float, height: Float) {
         val bitmap = textures.getProportionalScaled(bitmapFromBank, height.toInt())
         drawBitmap(bitmap, centerX - bitmap.width / 2, centerY - height / 2, paint)
     }
 
-    internal fun Canvas.drawBitmap(bitmap: Bitmap, centerX: Float, centerY: Float) {
+    fun Canvas.drawBitmap(bitmap: Bitmap, centerX: Float, centerY: Float) {
         drawBitmap(bitmap, centerX - bitmap.width / 2, centerY - bitmap.height / 2, paint)
     }
 
-    internal interface Inner {
+    interface Inner {
         val view: FieldSurfaceView
     }
 }

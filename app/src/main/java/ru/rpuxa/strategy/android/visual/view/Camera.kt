@@ -3,7 +3,7 @@ package ru.rpuxa.strategy.android.visual.view
 import ru.rpuxa.strategy.core.geometry.Point
 import ru.rpuxa.strategy.core.others.pt
 
-internal class Camera(override val view: FieldSurfaceView) : FieldSurfaceView.Inner {
+class Camera(override val view: FieldSurfaceView) : FieldSurfaceView.Inner {
     var x = 0f
     var y = 0f
     var width = 900f
